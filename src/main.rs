@@ -20,6 +20,8 @@ struct Config {
 struct Server {
     name: String,
     path: String,
+    version: Option<String>,
+    server_type: Option<String>,
 }
 
 #[derive(PartialEq)]
@@ -29,6 +31,19 @@ enum Screen {
     Bridge,
     AddingServer,
     ServerMenu,
+    Setup,
+}
+
+#[derive(PartialEq)]
+enum SetupPhase {
+    Version,
+    Type,
+}
+
+// Estructura para almacenar versión y sus loaders compatibles
+struct VersionInfo {
+    version: String,
+    loaders: Vec<String>, // "Vanilla", "Forge", "Fabric", "NeoForge"
 }
 
 struct App {
@@ -38,6 +53,12 @@ struct App {
     input_buffer: String,
     selected_server: Option<usize>,
     error_message: Option<String>,
+    setup_phase: SetupPhase,
+    setup_type_index: usize,
+    version_list: Vec<VersionInfo>,
+    filtered_versions: Vec<usize>, // Índices de version_list
+    version_scroll_index: usize,
+    available_loaders: Vec<String>, // Loaders disponibles para la versión elegida
 }
 
 impl App {
@@ -46,6 +67,10 @@ impl App {
             .ok()
             .and_then(|s| serde_json::from_str(&s).ok())
             .unwrap_or_default();
+
+        let version_list = Self::get_all_minecraft_versions();
+        let filtered_versions: Vec<usize> = (0..version_list.len()).collect();
+
         Self {
             screen: Screen::Main,
             index: 0,
@@ -53,7 +78,246 @@ impl App {
             input_buffer: String::new(),
             selected_server: None,
             error_message: None,
+            setup_phase: SetupPhase::Version,
+            setup_type_index: 0,
+            version_list,
+            filtered_versions,
+            version_scroll_index: 0,
+            available_loaders: Vec::new(),
         }
+    }
+
+    fn get_all_minecraft_versions() -> Vec<VersionInfo> {
+        vec![
+            VersionInfo {
+                version: "1.9.4".into(),
+                loaders: vec!["Forge".into()],
+            },
+            VersionInfo {
+                version: "1.10".into(),
+                loaders: vec!["Forge".into()],
+            },
+            VersionInfo {
+                version: "1.10.1".into(),
+                loaders: vec!["Forge".into()],
+            },
+            VersionInfo {
+                version: "1.10.2".into(),
+                loaders: vec!["Forge".into()],
+            },
+            VersionInfo {
+                version: "1.11".into(),
+                loaders: vec!["Forge".into()],
+            },
+            VersionInfo {
+                version: "1.11.1".into(),
+                loaders: vec!["Forge".into()],
+            },
+            VersionInfo {
+                version: "1.11.2".into(),
+                loaders: vec!["Forge".into()],
+            },
+            VersionInfo {
+                version: "1.12".into(),
+                loaders: vec!["Forge".into()],
+            },
+            VersionInfo {
+                version: "1.12.1".into(),
+                loaders: vec!["Forge".into()],
+            },
+            VersionInfo {
+                version: "1.12.2".into(),
+                loaders: vec!["Forge".into()],
+            },
+            VersionInfo {
+                version: "1.13".into(),
+                loaders: vec!["Forge".into()],
+            },
+            VersionInfo {
+                version: "1.13.1".into(),
+                loaders: vec!["Forge".into()],
+            },
+            VersionInfo {
+                version: "1.13.2".into(),
+                loaders: vec!["Forge".into()],
+            },
+            VersionInfo {
+                version: "1.14".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.14.1".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.14.2".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.14.3".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.14.4".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.15".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.15.1".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.15.2".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.16".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.16.1".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.16.2".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.16.3".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.16.4".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.16.5".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.17".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.17.1".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.18".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.18.1".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.18.2".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.19".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.19.1".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.19.2".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.19.3".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.19.4".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.20".into(),
+                loaders: vec!["Forge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.20.1".into(),
+                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.20.2".into(),
+                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.20.3".into(),
+                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.20.4".into(),
+                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.20.5".into(),
+                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.20.6".into(),
+                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.21".into(),
+                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.21.1".into(),
+                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.21.2".into(),
+                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.21.3".into(),
+                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.21.4".into(),
+                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "1.21.5".into(),
+                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "26.1".into(),
+                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "26.2".into(),
+                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
+            },
+            VersionInfo {
+                version: "26.3".into(),
+                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
+            },
+        ]
+    }
+
+    fn filter_versions(&mut self) {
+        let search = self.input_buffer.to_lowercase();
+        if search.is_empty() {
+            self.filtered_versions = (0..self.version_list.len()).collect();
+        } else {
+            self.filtered_versions = self
+                .version_list
+                .iter()
+                .enumerate()
+                .filter(|(_, v)| v.version.to_lowercase().contains(&search))
+                .map(|(i, _)| i)
+                .collect();
+        }
+        self.version_scroll_index = 0;
     }
 
     fn save(&self) {
@@ -79,20 +343,18 @@ impl App {
 
     fn delete_server(&mut self, server_index: usize) -> Result<(), String> {
         if server_index >= self.config.servers.len() {
-            return Err("Índice inválido".to_string());
+            return Err("Indice invalido".to_string());
         }
 
         let server = &self.config.servers[server_index];
         let path = server.path.clone();
 
-        // Intentar borrar la carpeta
         if std::path::Path::new(&path).exists() {
             if let Err(e) = fs::remove_dir_all(&path) {
                 return Err(format!("Error al borrar carpeta: {}", e));
             }
         }
 
-        // Eliminar del JSON
         self.config.servers.remove(server_index);
         self.save();
 
@@ -124,7 +386,12 @@ impl App {
     fn get_navigable_items(&self) -> Vec<String> {
         let mut items = Vec::new();
         for s in &self.config.servers {
-            items.push(format!("{} ({})", s.name, s.path));
+            let info = match (&s.version, &s.server_type) {
+                (Some(v), Some(t)) => format!("v{} - {}", v, t),
+                (Some(v), None) => format!("v{} - sin configurar", v),
+                _ => "sin configurar".to_string(),
+            };
+            items.push(format!("{} [{}] ({})", s.name, info, s.path));
         }
         items.push("[+] Agregar Servidor".to_string());
         items.push("[<] Volver al Menu".to_string());
@@ -137,7 +404,12 @@ impl App {
             items.push("(Sin servidores configurados)".to_string());
         } else {
             for s in &self.config.servers {
-                items.push(format!("{} ({})", s.name, s.path));
+                let info = match (&s.version, &s.server_type) {
+                    (Some(v), Some(t)) => format!("v{} - {}", v, t),
+                    (Some(v), None) => format!("v{} - sin configurar", v),
+                    _ => "sin configurar".to_string(),
+                };
+                items.push(format!("{} [{}] ({})", s.name, info, s.path));
             }
         }
         items.push("[+] Agregar Servidor".to_string());
@@ -244,9 +516,15 @@ fn main() -> io::Result<()> {
 
                                     if is_empty {
                                         match app.index {
-                                            0 => { /* Setup - pendiente */ }
+                                            0 => {
+                                                app.screen = Screen::Setup;
+                                                app.setup_phase = SetupPhase::Version;
+                                                app.input_buffer.clear();
+                                                app.setup_type_index = 0;
+                                                app.error_message = None;
+                                                app.filter_versions();
+                                            }
                                             1 => {
-                                                // Borrar servidor (carpeta + JSON)
                                                 if let Err(e) = app.delete_server(server_idx) {
                                                     eprintln!("Error: {}", e);
                                                 }
@@ -265,9 +543,15 @@ fn main() -> io::Result<()> {
                                         match app.index {
                                             0 => { /* Iniciar - pendiente */ }
                                             1 => { /* Detener - pendiente */ }
-                                            2 => { /* Setup - pendiente */ }
+                                            2 => {
+                                                app.screen = Screen::Setup;
+                                                app.setup_phase = SetupPhase::Version;
+                                                app.input_buffer.clear();
+                                                app.setup_type_index = 0;
+                                                app.error_message = None;
+                                                app.filter_versions();
+                                            }
                                             3 => {
-                                                // Borrar servidor (carpeta + JSON)
                                                 if let Err(e) = app.delete_server(server_idx) {
                                                     eprintln!("Error: {}", e);
                                                 }
@@ -288,6 +572,92 @@ fn main() -> io::Result<()> {
                             _ => {}
                         }
                     }
+                    Screen::Setup => match app.setup_phase {
+                        SetupPhase::Version => match key.code {
+                            KeyCode::Char(c) => {
+                                if c.is_ascii_digit() || c == '.' {
+                                    app.input_buffer.push(c);
+                                    app.error_message = None;
+                                    app.filter_versions();
+                                }
+                            }
+                            KeyCode::Backspace => {
+                                app.input_buffer.pop();
+                                app.error_message = None;
+                                app.filter_versions();
+                            }
+                            KeyCode::Up => {
+                                app.version_scroll_index =
+                                    app.version_scroll_index.saturating_sub(1);
+                            }
+                            KeyCode::Down => {
+                                if !app.filtered_versions.is_empty() {
+                                    app.version_scroll_index = (app.version_scroll_index + 1)
+                                        .min(app.filtered_versions.len() - 1);
+                                }
+                            }
+                            KeyCode::Enter => {
+                                if !app.filtered_versions.is_empty() {
+                                    let version_idx =
+                                        app.filtered_versions[app.version_scroll_index];
+                                    let version_info = &app.version_list[version_idx];
+
+                                    // Guardar versión
+                                    if let Some(idx) = app.selected_server {
+                                        app.config.servers[idx].version =
+                                            Some(version_info.version.clone());
+                                        app.save();
+                                    }
+
+                                    // Guardar loaders disponibles para esta versión
+                                    app.available_loaders = version_info.loaders.clone();
+
+                                    app.input_buffer.clear();
+                                    app.error_message = None;
+                                    app.setup_phase = SetupPhase::Type;
+                                    app.setup_type_index = 0;
+                                }
+                            }
+                            KeyCode::Esc => {
+                                app.screen = Screen::ServerMenu;
+                                app.index = 0;
+                                app.input_buffer.clear();
+                                app.error_message = None;
+                            }
+                            _ => {}
+                        },
+                        SetupPhase::Type => {
+                            let total = app.available_loaders.len();
+                            match key.code {
+                                KeyCode::Up => {
+                                    app.setup_type_index = app.setup_type_index.saturating_sub(1)
+                                }
+                                KeyCode::Down => {
+                                    if total > 0 {
+                                        app.setup_type_index =
+                                            (app.setup_type_index + 1).min(total - 1)
+                                    }
+                                }
+                                KeyCode::Enter | KeyCode::Char(' ') => {
+                                    if total > 0 {
+                                        if let Some(idx) = app.selected_server {
+                                            let server_type =
+                                                app.available_loaders[app.setup_type_index].clone();
+                                            app.config.servers[idx].server_type = Some(server_type);
+                                            app.save();
+                                        }
+                                        app.screen = Screen::ServerMenu;
+                                        app.index = 0;
+                                    }
+                                }
+                                KeyCode::Esc => {
+                                    app.screen = Screen::ServerMenu;
+                                    app.index = 0;
+                                }
+                                _ => {}
+                            }
+                        }
+                    },
                     Screen::Bridge => {
                         let current = app.config.bridge.as_deref().unwrap_or("Ninguno");
                         let items = [
@@ -347,7 +717,12 @@ fn main() -> io::Result<()> {
                                     app.error_message =
                                         Some(format!("Error al crear carpeta: {}", e));
                                 } else {
-                                    app.config.servers.push(Server { name, path });
+                                    app.config.servers.push(Server {
+                                        name,
+                                        path,
+                                        version: None,
+                                        server_type: None,
+                                    });
                                     app.save();
                                     app.input_buffer.clear();
                                     app.error_message = None;
@@ -440,6 +815,103 @@ fn ui(f: &mut Frame, app: &App) {
             .highlight_symbol(">> ");
             let mut state = ListState::default().with_selected(Some(app.index));
             f.render_stateful_widget(list, area, &mut state);
+        }
+        Screen::Setup => {
+            let popup_area = centered_rect(70, 60, area);
+            f.render_widget(Clear, popup_area);
+
+            match app.setup_phase {
+                SetupPhase::Version => {
+                    let layout = Layout::default()
+                        .direction(Direction::Vertical)
+                        .constraints([Constraint::Length(6), Constraint::Min(0)])
+                        .split(popup_area);
+
+                    let input_text = vec![
+                        Line::from("Paso 1/2: Selecciona la version"),
+                        Line::from("Escribe solo numeros y puntos (ej: 1.20.1)"),
+                        Line::from("f=Forge, n=NeoForge, m=Fabric"),
+                        Line::from(Span::styled(
+                            format!("Version: {}_", app.input_buffer),
+                            Style::default()
+                                .fg(Color::White)
+                                .add_modifier(Modifier::BOLD),
+                        )),
+                    ];
+
+                    let input_widget = Paragraph::new(input_text).block(
+                        Block::default()
+                            .borders(Borders::ALL)
+                            .title("Ingresar Version"),
+                    );
+
+                    f.render_widget(input_widget, layout[0]);
+
+                    // Lista de versiones con sus loaders visibles
+                    let list_items: Vec<Line> = app
+                        .filtered_versions
+                        .iter()
+                        .map(|&idx| {
+                            let v = &app.version_list[idx];
+                            let loaders_str = v
+                                .loaders
+                                .iter()
+                                .map(|l| match l.as_str() {
+                                    "Forge" => "f",
+                                    "NeoForge" => "n",
+                                    "Fabric" => "m",
+                                    _ => "?",
+                                })
+                                .collect::<Vec<_>>()
+                                .join(", ");
+                            Line::from(format!("{} ({})", v.version, loaders_str))
+                        })
+                        .collect();
+
+                    let list = List::new(list_items)
+                        .block(Block::default().borders(Borders::ALL).title(format!(
+                            "Versiones disponibles ({})",
+                            app.filtered_versions.len()
+                        )))
+                        .highlight_style(
+                            Style::default()
+                                .fg(Color::Yellow)
+                                .add_modifier(Modifier::BOLD),
+                        )
+                        .highlight_symbol(">> ");
+
+                    let mut state =
+                        ListState::default().with_selected(Some(app.version_scroll_index));
+                    f.render_stateful_widget(list, layout[1], &mut state);
+                }
+                SetupPhase::Type => {
+                    // Obtener la versión elegida para mostrarla en el título
+                    let chosen_version = app
+                        .selected_server
+                        .and_then(|idx| app.config.servers[idx].version.clone())
+                        .unwrap_or_else(|| "?".to_string());
+
+                    let list_items: Vec<Line> = app
+                        .available_loaders
+                        .iter()
+                        .map(|l| Line::from(l.as_str()))
+                        .collect();
+
+                    let list = List::new(list_items)
+                        .block(Block::default().borders(Borders::ALL).title(format!(
+                            "Paso 2/2: Tipo para v{} (Enter: confirmar, Esc: cancelar)",
+                            chosen_version
+                        )))
+                        .highlight_style(
+                            Style::default()
+                                .fg(Color::Yellow)
+                                .add_modifier(Modifier::BOLD),
+                        )
+                        .highlight_symbol(">> ");
+                    let mut state = ListState::default().with_selected(Some(app.setup_type_index));
+                    f.render_stateful_widget(list, popup_area, &mut state);
+                }
+            }
         }
         Screen::Bridge => {
             let current = app.config.bridge.as_deref().unwrap_or("Ninguno");
