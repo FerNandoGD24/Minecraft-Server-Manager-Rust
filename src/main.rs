@@ -37,7 +37,7 @@ struct App {
     config: Config,
     input_buffer: String,
     selected_server: Option<usize>,
-    error_message: Option<String>, // Nuevo: para mostrar errores
+    error_message: Option<String>,
 }
 
 impl App {
@@ -64,6 +64,61 @@ impl App {
 
     fn server_name_exists(&self, name: &str) -> bool {
         self.config.servers.iter().any(|s| s.name == name)
+    }
+
+    fn is_server_folder_empty(&self, server_index: usize) -> bool {
+        if server_index >= self.config.servers.len() {
+            return true;
+        }
+        let path = &self.config.servers[server_index].path;
+        match fs::read_dir(path) {
+            Ok(mut entries) => entries.next().is_none(),
+            Err(_) => true,
+        }
+    }
+
+    fn delete_server(&mut self, server_index: usize) -> Result<(), String> {
+        if server_index >= self.config.servers.len() {
+            return Err("Índice inválido".to_string());
+        }
+
+        let server = &self.config.servers[server_index];
+        let path = server.path.clone();
+
+        // Intentar borrar la carpeta
+        if std::path::Path::new(&path).exists() {
+            if let Err(e) = fs::remove_dir_all(&path) {
+                return Err(format!("Error al borrar carpeta: {}", e));
+            }
+        }
+
+        // Eliminar del JSON
+        self.config.servers.remove(server_index);
+        self.save();
+
+        Ok(())
+    }
+
+    fn get_server_menu_options(&self) -> Vec<String> {
+        if let Some(idx) = self.selected_server {
+            let mut options = Vec::new();
+
+            if self.is_server_folder_empty(idx) {
+                options.push("Setup".to_string());
+                options.push("Borrar Servidor".to_string());
+                options.push("[<] Volver".to_string());
+            } else {
+                options.push("Iniciar Servidor".to_string());
+                options.push("Detener Servidor".to_string());
+                options.push("Setup".to_string());
+                options.push("Borrar Servidor".to_string());
+                options.push("[<] Volver".to_string());
+            }
+
+            options
+        } else {
+            vec!["[<] Volver".to_string()]
+        }
     }
 
     fn get_navigable_items(&self) -> Vec<String> {
@@ -166,8 +221,9 @@ fn main() -> io::Result<()> {
                                 if !app.config.servers.is_empty()
                                     && app.index < app.config.servers.len()
                                 {
-                                    app.config.servers.remove(app.index);
-                                    app.save();
+                                    if let Err(e) = app.delete_server(app.index) {
+                                        eprintln!("Error: {}", e);
+                                    }
                                     if app.index >= app.config.servers.len() && app.index > 0 {
                                         app.index -= 1;
                                     }
@@ -177,21 +233,56 @@ fn main() -> io::Result<()> {
                         }
                     }
                     Screen::ServerMenu => {
-                        let total_options = 4;
+                        let options = app.get_server_menu_options();
+                        let total_options = options.len();
                         match key.code {
                             KeyCode::Up => app.index = app.index.saturating_sub(1),
                             KeyCode::Down => app.index = (app.index + 1).min(total_options - 1),
                             KeyCode::Enter | KeyCode::Char(' ') => {
-                                match app.index {
-                                    0 => { /* Iniciar - pendiente */ }
-                                    1 => { /* Detener - pendiente */ }
-                                    2 => { /* Configurar - pendiente */ }
-                                    3 => {
-                                        app.screen = Screen::Servers;
-                                        app.index = app.selected_server.unwrap_or(0);
-                                        app.selected_server = None;
+                                if let Some(server_idx) = app.selected_server {
+                                    let is_empty = app.is_server_folder_empty(server_idx);
+
+                                    if is_empty {
+                                        match app.index {
+                                            0 => { /* Setup - pendiente */ }
+                                            1 => {
+                                                // Borrar servidor (carpeta + JSON)
+                                                if let Err(e) = app.delete_server(server_idx) {
+                                                    eprintln!("Error: {}", e);
+                                                }
+                                                app.screen = Screen::Servers;
+                                                app.selected_server = None;
+                                                app.index = 0;
+                                            }
+                                            2 => {
+                                                app.screen = Screen::Servers;
+                                                app.index = server_idx;
+                                                app.selected_server = None;
+                                            }
+                                            _ => {}
+                                        }
+                                    } else {
+                                        match app.index {
+                                            0 => { /* Iniciar - pendiente */ }
+                                            1 => { /* Detener - pendiente */ }
+                                            2 => { /* Setup - pendiente */ }
+                                            3 => {
+                                                // Borrar servidor (carpeta + JSON)
+                                                if let Err(e) = app.delete_server(server_idx) {
+                                                    eprintln!("Error: {}", e);
+                                                }
+                                                app.screen = Screen::Servers;
+                                                app.selected_server = None;
+                                                app.index = 0;
+                                            }
+                                            4 => {
+                                                app.screen = Screen::Servers;
+                                                app.index = server_idx;
+                                                app.selected_server = None;
+                                            }
+                                            _ => {}
+                                        }
                                     }
-                                    _ => {}
                                 }
                             }
                             _ => {}
@@ -236,7 +327,7 @@ fn main() -> io::Result<()> {
                     Screen::AddingServer => match key.code {
                         KeyCode::Char(c) => {
                             app.input_buffer.push(c);
-                            app.error_message = None; // Limpiar error al escribir
+                            app.error_message = None;
                         }
                         KeyCode::Backspace => {
                             app.input_buffer.pop();
@@ -333,20 +424,20 @@ fn ui(f: &mut Frame, app: &App) {
                 "Desconocido"
             };
 
-            let items = [
-                "Iniciar Servidor",
-                "Detener Servidor",
-                "Configurar",
-                "[<] Volver",
-            ];
-            let list = List::new(items.iter().map(|i| Line::from(*i)).collect::<Vec<_>>())
-                .block(
-                    Block::default()
-                        .borders(Borders::ALL)
-                        .title(format!("Opciones de: {}", server_name)),
-                )
-                .highlight_style(Style::default().fg(Color::Magenta))
-                .highlight_symbol(">> ");
+            let options = app.get_server_menu_options();
+            let list = List::new(
+                options
+                    .iter()
+                    .map(|i| Line::from(i.as_str()))
+                    .collect::<Vec<_>>(),
+            )
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(format!("Opciones de: {}", server_name)),
+            )
+            .highlight_style(Style::default().fg(Color::Magenta))
+            .highlight_symbol(">> ");
             let mut state = ListState::default().with_selected(Some(app.index));
             f.render_stateful_widget(list, area, &mut state);
         }
@@ -387,7 +478,6 @@ fn ui(f: &mut Frame, app: &App) {
             let popup_area = centered_rect(60, 30, area);
             f.render_widget(Clear, popup_area);
 
-            // Construir el contenido del popup con posible mensaje de error
             let mut text = vec![
                 Line::from("Nombre del servidor:"),
                 Line::from(""),
