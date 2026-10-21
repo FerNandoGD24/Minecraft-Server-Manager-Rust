@@ -40,10 +40,17 @@ enum SetupPhase {
     Type,
 }
 
-// Estructura para almacenar versión y sus loaders compatibles
+struct Loader {
+    name: String,
+    short: String,
+    color: Color,
+    min_version: String,
+    max_version: String,
+}
+
 struct VersionInfo {
     version: String,
-    loaders: Vec<String>, // "Vanilla", "Forge", "Fabric", "NeoForge"
+    loaders: Vec<String>,
 }
 
 struct App {
@@ -56,9 +63,9 @@ struct App {
     setup_phase: SetupPhase,
     setup_type_index: usize,
     version_list: Vec<VersionInfo>,
-    filtered_versions: Vec<usize>, // Índices de version_list
+    filtered_versions: Vec<usize>,
     version_scroll_index: usize,
-    available_loaders: Vec<String>, // Loaders disponibles para la versión elegida
+    available_loaders: Vec<String>,
 }
 
 impl App {
@@ -68,7 +75,7 @@ impl App {
             .and_then(|s| serde_json::from_str(&s).ok())
             .unwrap_or_default();
 
-        let version_list = Self::get_all_minecraft_versions();
+        let version_list = Self::generate_version_list();
         let filtered_versions: Vec<usize> = (0..version_list.len()).collect();
 
         Self {
@@ -87,221 +94,133 @@ impl App {
         }
     }
 
-    fn get_all_minecraft_versions() -> Vec<VersionInfo> {
+    fn compare_versions(v1: &str, v2: &str) -> i32 {
+        let parts1: Vec<u32> = v1.split('.').filter_map(|s| s.parse().ok()).collect();
+        let parts2: Vec<u32> = v2.split('.').filter_map(|s| s.parse().ok()).collect();
+
+        let max_len = parts1.len().max(parts2.len());
+
+        for i in 0..max_len {
+            let p1 = parts1.get(i).unwrap_or(&0);
+            let p2 = parts2.get(i).unwrap_or(&0);
+
+            if p1 < p2 {
+                return -1;
+            } else if p1 > p2 {
+                return 1;
+            }
+        }
+
+        0
+    }
+
+    fn is_version_in_range(version: &str, min: &str, max: &str) -> bool {
+        Self::compare_versions(version, min) >= 0 && Self::compare_versions(version, max) <= 0
+    }
+
+    fn get_all_versions() -> Vec<String> {
+        let mut versions = Vec::new();
+
+        let version_map = vec![
+            ("1.9", vec!["1.9.4"]),
+            ("1.10", vec!["1.10", "1.10.1", "1.10.2"]),
+            ("1.11", vec!["1.11", "1.11.1", "1.11.2"]),
+            ("1.12", vec!["1.12", "1.12.1", "1.12.2"]),
+            ("1.13", vec!["1.13", "1.13.1", "1.13.2"]),
+            ("1.14", vec!["1.14", "1.14.1", "1.14.2", "1.14.3", "1.14.4"]),
+            ("1.15", vec!["1.15", "1.15.1", "1.15.2"]),
+            (
+                "1.16",
+                vec!["1.16", "1.16.1", "1.16.2", "1.16.3", "1.16.4", "1.16.5"],
+            ),
+            ("1.17", vec!["1.17", "1.17.1"]),
+            ("1.18", vec!["1.18", "1.18.1", "1.18.2"]),
+            ("1.19", vec!["1.19", "1.19.1", "1.19.2", "1.19.3", "1.19.4"]),
+            (
+                "1.20",
+                vec![
+                    "1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6",
+                ],
+            ),
+            (
+                "1.21",
+                vec!["1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4", "1.21.5"],
+            ),
+            ("26", vec!["26.1", "26.2", "26.3"]),
+        ];
+
+        for (_, subs) in version_map {
+            versions.extend(subs.into_iter().map(String::from));
+        }
+
+        versions
+    }
+
+    fn get_loaders() -> Vec<Loader> {
         vec![
-            VersionInfo {
-                version: "1.9.4".into(),
-                loaders: vec!["Forge".into()],
+            Loader {
+                name: "Vanilla".into(),
+                short: "v".into(),
+                color: Color::White,
+                min_version: "1.9.4".into(),
+                max_version: "26.3".into(),
             },
-            VersionInfo {
-                version: "1.10".into(),
-                loaders: vec!["Forge".into()],
+            Loader {
+                name: "Forge".into(),
+                short: "f".into(),
+                color: Color::Red,
+                min_version: "1.9.4".into(),
+                max_version: "26.3".into(),
             },
-            VersionInfo {
-                version: "1.10.1".into(),
-                loaders: vec!["Forge".into()],
+            Loader {
+                name: "Fabric".into(),
+                short: "m".into(),
+                color: Color::LightBlue,
+                min_version: "1.14".into(),
+                max_version: "26.3".into(),
             },
-            VersionInfo {
-                version: "1.10.2".into(),
-                loaders: vec!["Forge".into()],
+            Loader {
+                name: "NeoForge".into(),
+                short: "n".into(),
+                color: Color::LightGreen,
+                min_version: "1.20.1".into(),
+                max_version: "26.3".into(),
             },
-            VersionInfo {
-                version: "1.11".into(),
-                loaders: vec!["Forge".into()],
-            },
-            VersionInfo {
-                version: "1.11.1".into(),
-                loaders: vec!["Forge".into()],
-            },
-            VersionInfo {
-                version: "1.11.2".into(),
-                loaders: vec!["Forge".into()],
-            },
-            VersionInfo {
-                version: "1.12".into(),
-                loaders: vec!["Forge".into()],
-            },
-            VersionInfo {
-                version: "1.12.1".into(),
-                loaders: vec!["Forge".into()],
-            },
-            VersionInfo {
-                version: "1.12.2".into(),
-                loaders: vec!["Forge".into()],
-            },
-            VersionInfo {
-                version: "1.13".into(),
-                loaders: vec!["Forge".into()],
-            },
-            VersionInfo {
-                version: "1.13.1".into(),
-                loaders: vec!["Forge".into()],
-            },
-            VersionInfo {
-                version: "1.13.2".into(),
-                loaders: vec!["Forge".into()],
-            },
-            VersionInfo {
-                version: "1.14".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.14.1".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.14.2".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.14.3".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.14.4".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.15".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.15.1".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.15.2".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.16".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.16.1".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.16.2".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.16.3".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.16.4".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.16.5".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.17".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.17.1".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.18".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.18.1".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.18.2".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.19".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.19.1".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.19.2".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.19.3".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.19.4".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.20".into(),
-                loaders: vec!["Forge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.20.1".into(),
-                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.20.2".into(),
-                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.20.3".into(),
-                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.20.4".into(),
-                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.20.5".into(),
-                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.20.6".into(),
-                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.21".into(),
-                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.21.1".into(),
-                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.21.2".into(),
-                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.21.3".into(),
-                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.21.4".into(),
-                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "1.21.5".into(),
-                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "26.1".into(),
-                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "26.2".into(),
-                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
-            },
-            VersionInfo {
-                version: "26.3".into(),
-                loaders: vec!["Forge".into(), "NeoForge".into(), "Fabric".into()],
-            },
+            //Loader {
+            //    name: "Quilt".into(),
+            //    short: "q".into(),
+            //    color: Color::LightGreen,
+            //    min_version: "1.13".into(),
+            //    max_version: "26.3".into(),
+            //},
         ]
+    }
+
+    fn generate_version_list() -> Vec<VersionInfo> {
+        let all_versions = Self::get_all_versions();
+        let loaders = Self::get_loaders();
+
+        all_versions
+            .into_iter()
+            .map(|version| {
+                let compatible_loaders: Vec<String> = loaders
+                    .iter()
+                    .filter(|loader| {
+                        Self::is_version_in_range(
+                            &version,
+                            &loader.min_version,
+                            &loader.max_version,
+                        )
+                    })
+                    .map(|loader| loader.name.clone())
+                    .collect();
+
+                VersionInfo {
+                    version,
+                    loaders: compatible_loaders,
+                }
+            })
+            .collect()
     }
 
     fn filter_versions(&mut self) {
@@ -416,6 +335,43 @@ impl App {
         items.push("[<] Volver al Menu".to_string());
         items
     }
+}
+
+fn loader_color(loader: &str) -> Color {
+    let loaders = App::get_loaders();
+    loaders
+        .iter()
+        .find(|l| l.name == loader)
+        .map(|l| l.color)
+        .unwrap_or(Color::Gray)
+}
+
+// CORREGIDO: Ahora retorna String en lugar de &str
+fn loader_short(loader: &str) -> String {
+    let loaders = App::get_loaders();
+    loaders
+        .iter()
+        .find(|l| l.name == loader)
+        .map(|l| l.short.clone())
+        .unwrap_or_else(|| "?".to_string())
+}
+
+fn build_version_line(version_info: &VersionInfo) -> Line<'static> {
+    let mut spans = vec![
+        Span::raw(format!("{:<8}", version_info.version)),
+        Span::raw(" "),
+    ];
+
+    for loader in &version_info.loaders {
+        spans.push(Span::styled(
+            format!("[{}] ", loader_short(loader)),
+            Style::default()
+                .fg(loader_color(loader))
+                .add_modifier(Modifier::BOLD),
+        ));
+    }
+
+    Line::from(spans)
 }
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
@@ -602,14 +558,12 @@ fn main() -> io::Result<()> {
                                         app.filtered_versions[app.version_scroll_index];
                                     let version_info = &app.version_list[version_idx];
 
-                                    // Guardar versión
                                     if let Some(idx) = app.selected_server {
                                         app.config.servers[idx].version =
                                             Some(version_info.version.clone());
                                         app.save();
                                     }
 
-                                    // Guardar loaders disponibles para esta versión
                                     app.available_loaders = version_info.loaders.clone();
 
                                     app.input_buffer.clear();
@@ -824,13 +778,27 @@ fn ui(f: &mut Frame, app: &App) {
                 SetupPhase::Version => {
                     let layout = Layout::default()
                         .direction(Direction::Vertical)
-                        .constraints([Constraint::Length(6), Constraint::Min(0)])
+                        .constraints([Constraint::Length(7), Constraint::Min(0)])
                         .split(popup_area);
+
+                    let loaders = App::get_loaders();
+                    let mut legend_spans = vec![Span::raw("Loaders: ")];
+                    for loader in &loaders {
+                        legend_spans.push(Span::styled(
+                            format!("[{}] {} ", loader.short, loader.name),
+                            Style::default()
+                                .fg(loader.color)
+                                .add_modifier(Modifier::BOLD),
+                        ));
+                    }
+                    let legend = Line::from(legend_spans);
 
                     let input_text = vec![
                         Line::from("Paso 1/2: Selecciona la version"),
                         Line::from("Escribe solo numeros y puntos (ej: 1.20.1)"),
-                        Line::from("f=Forge, n=NeoForge, m=Fabric"),
+                        Line::from(""),
+                        legend,
+                        Line::from(""),
                         Line::from(Span::styled(
                             format!("Version: {}_", app.input_buffer),
                             Style::default()
@@ -847,25 +815,10 @@ fn ui(f: &mut Frame, app: &App) {
 
                     f.render_widget(input_widget, layout[0]);
 
-                    // Lista de versiones con sus loaders visibles
                     let list_items: Vec<Line> = app
                         .filtered_versions
                         .iter()
-                        .map(|&idx| {
-                            let v = &app.version_list[idx];
-                            let loaders_str = v
-                                .loaders
-                                .iter()
-                                .map(|l| match l.as_str() {
-                                    "Forge" => "f",
-                                    "NeoForge" => "n",
-                                    "Fabric" => "m",
-                                    _ => "?",
-                                })
-                                .collect::<Vec<_>>()
-                                .join(", ");
-                            Line::from(format!("{} ({})", v.version, loaders_str))
-                        })
+                        .map(|&idx| build_version_line(&app.version_list[idx]))
                         .collect();
 
                     let list = List::new(list_items)
@@ -875,7 +828,7 @@ fn ui(f: &mut Frame, app: &App) {
                         )))
                         .highlight_style(
                             Style::default()
-                                .fg(Color::Yellow)
+                                .bg(Color::DarkGray)
                                 .add_modifier(Modifier::BOLD),
                         )
                         .highlight_symbol(">> ");
@@ -885,7 +838,6 @@ fn ui(f: &mut Frame, app: &App) {
                     f.render_stateful_widget(list, layout[1], &mut state);
                 }
                 SetupPhase::Type => {
-                    // Obtener la versión elegida para mostrarla en el título
                     let chosen_version = app
                         .selected_server
                         .and_then(|idx| app.config.servers[idx].version.clone())
@@ -894,7 +846,14 @@ fn ui(f: &mut Frame, app: &App) {
                     let list_items: Vec<Line> = app
                         .available_loaders
                         .iter()
-                        .map(|l| Line::from(l.as_str()))
+                        .map(|l| {
+                            Line::from(Span::styled(
+                                l.clone(),
+                                Style::default()
+                                    .fg(loader_color(l))
+                                    .add_modifier(Modifier::BOLD),
+                            ))
+                        })
                         .collect();
 
                     let list = List::new(list_items)
@@ -904,7 +863,7 @@ fn ui(f: &mut Frame, app: &App) {
                         )))
                         .highlight_style(
                             Style::default()
-                                .fg(Color::Yellow)
+                                .bg(Color::DarkGray)
                                 .add_modifier(Modifier::BOLD),
                         )
                         .highlight_symbol(">> ");
