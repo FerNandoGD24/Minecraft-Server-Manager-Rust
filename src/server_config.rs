@@ -1,5 +1,4 @@
 use crate::config::config_path;
-use crate::discovery::types::ServerService;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;

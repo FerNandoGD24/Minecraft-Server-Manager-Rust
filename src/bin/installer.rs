@@ -2,7 +2,7 @@ use clap::Parser;
 use inquire::Select;
 use inquire::Confirm;
 use reqwest::blocking::Client;
-use sha2::{Digest, Sha256};
+use sha2::Digest;
 use std::fs::Permissions;
 use std::io::Write;
 use std::os::unix::fs::PermissionsExt;

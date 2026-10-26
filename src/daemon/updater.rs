@@ -1,4 +1,4 @@
-use crate::daemon::types::{DaemonConfig, UpdateState, UpdateMarker, IpcRequest, IpcResponse, UpdateStatus};
+use crate::daemon::types::{DaemonConfig, UpdateState, UpdateMarker, UpdateStatus};
 use anyhow::{anyhow, Result};
 use reqwest::blocking::Client;
 use semver::Version;
@@ -6,10 +6,8 @@ use sha2::{Digest, Sha256};
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
-use std::process::Command;
 
 const GITHUB_REPO: &str = "FerNandoGD24/Minecraft-Server-Manager-Rust";
 const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -145,7 +143,7 @@ impl AutoUpdater {
     }
 
     fn find_asset(&self, release: &GitHubRelease) -> Option<ReleaseAsset> {
-        let arch = std::env::consts::ARCH;
+        let _arch = std::env::consts::ARCH;
         let asset_name = match std::env::consts::ARCH {
             "x86_64" => "mc-manager-linux-x86_64",
             "aarch64" => "mc-manager-linux-aarch64",

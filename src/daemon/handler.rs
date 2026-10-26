@@ -1,5 +1,4 @@
-use crate::daemon::types::{DaemonConfig, IpcRequest, IpcResponse, ServerInfo, ServerConfig};
-use crate::discovery::types::ServerStatus;
+use crate::daemon::types::DaemonConfig;
 use crate::control::ServerManager;
 use crate::monitoring::ResourceCollector;
 use crate::console::ConsoleManager;
@@ -29,7 +28,7 @@ impl DaemonHandler {
     }
 
     pub fn initialize(&mut self) -> Result<(), String> {
-        let mut collector = ResourceCollector::start(crate::monitoring::MonitoringConfig::default());
+        let collector = ResourceCollector::start(crate::monitoring::MonitoringConfig::default());
         self.resource_collector = Some(collector);
 
         let console_config = crate::console::ConsoleConfig::default();

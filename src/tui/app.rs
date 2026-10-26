@@ -1,13 +1,10 @@
 use crate::daemon::{DaemonConfig, IpcClient, IpcRequest, IpcResponse, ServerInfo};
 use crate::monitoring::ResourceMetrics;
-use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
-use ratatui::Terminal;
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use std::collections::HashMap;
-use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 use tokio::task;
-use crate::daemon::version_tracker::fetch_changelog_for_version;
 
 /// Modos de la aplicacion
 #[derive(Debug, Clone, PartialEq)]
@@ -106,11 +103,11 @@ impl App {
             let mut interval = tokio::time::interval(Duration::from_secs(2));
             loop {
                 interval.tick().await;
-                let mut all_metrics = HashMap::new();
+                let all_metrics = HashMap::new();
 
                 if let Ok(IpcResponse::ServerList { servers }) = client.send(IpcRequest::ListServers) {
                     for server in servers {
-                        if let Some(pid) = server.pid {
+                        if let Some(_pid) = server.pid {
                         }
                     }
                 }
@@ -120,7 +117,7 @@ impl App {
         });
 
         task::spawn(async move {
-            while let Some(metrics) = rx.recv().await {
+            while let Some(_metrics) = rx.recv().await {
             }
         });
     }
@@ -481,7 +478,7 @@ impl App {
                 if current == latest {
                     self.status_message = format!("Actualizado a la version {}", current);
                 } else {
-                    let changelog = self.fetch_changelog(&latest).await.unwrap_or_else(|_| "No disponible".to_string());
+                    let _changelog = self.fetch_changelog(&latest).await.unwrap_or_else(|_| "No disponible".to_string());
                     self.mode = AppMode::UpdateAvailable { version: latest.clone(), download_url: String::new(), downloaded };
                     self.status_message = format!("Actualizacion disponible: {} -> {} (descargada: {})", current, latest, downloaded);
                 }

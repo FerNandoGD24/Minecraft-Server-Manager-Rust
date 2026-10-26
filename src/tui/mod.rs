@@ -3,8 +3,7 @@ pub mod ui;
 
 pub use app::App;
 use ui::{dashboard, console};
-use crate::tui::app::AppMode;
-use crossterm::event::{Event, KeyEvent};
+use crossterm::event::Event;
 use ratatui::{
     backend::CrosstermBackend,
     Terminal,

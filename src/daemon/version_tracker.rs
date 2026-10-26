@@ -57,7 +57,7 @@ impl VersionState {
 }
 
 pub fn fetch_changelog_for_version(version: &str) -> anyhow::Result<String> {
-    let client = reqwest::blocking::Client::new();
+    let _client = reqwest::blocking::Client::new();
     let url = format!(
         "https://api.github.com/repos/FerNandoGD24/Minecraft-Server-Manager-Rust/releases/tags/v{}",
         version

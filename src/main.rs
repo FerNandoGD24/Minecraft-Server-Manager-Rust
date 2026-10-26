@@ -1,12 +1,10 @@
 use clap::{Parser, Subcommand};
 use Minecraft_Server_Manager_Rust::config::{load_config, save_config, Config, config_path};
 use Minecraft_Server_Manager_Rust::daemon::{daemonize, IpcServer, DaemonHandler, IpcClient, IpcRequest, IpcResponse, is_daemon_running, get_daemon_pid, AutoUpdater, DaemonConfig};
-use Minecraft_Server_Manager_Rust::tui::{run_tui, app};
-use Minecraft_Server_Manager_Rust::monitoring::ResourceCollector;
-use Minecraft_Server_Manager_Rust::daemon::types::{UpdateStatus, UpdateState, UpdateMarker};
+use Minecraft_Server_Manager_Rust::tui::run_tui;
+use Minecraft_Server_Manager_Rust::daemon::types::UpdateStatus;
 use Minecraft_Server_Manager_Rust::server_config;
 use std::env;
-use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(name = "mc-manager", about = "Minecraft Server Manager - TUI + Daemon")]
@@ -107,7 +105,7 @@ fn handle_daemon_request(req: IpcRequest, handler: &mut DaemonHandler) -> IpcRes
         IpcRequest::ListServers => {
             handler.refresh_servers().ok();
             let servers: Vec<Minecraft_Server_Manager_Rust::daemon::types::ServerInfo> = handler.server_managers.iter()
-                .map(|(id, mgr)| {
+                .map(|(_id, mgr)| {
                     let mgr = mgr.lock().unwrap();
                     let s = mgr.server();
                     Minecraft_Server_Manager_Rust::daemon::types::ServerInfo {
@@ -159,7 +157,7 @@ fn handle_daemon_request(req: IpcRequest, handler: &mut DaemonHandler) -> IpcRes
             // Apply pending update before shutdown
             let config = load_config();
             let daemon_config: DaemonConfig = (&config).into();
-            let mut updater = AutoUpdater::new(daemon_config);
+            let updater = AutoUpdater::new(daemon_config);
             if let Err(e) = updater.apply_on_shutdown() {
                 eprintln!("Error applying update on shutdown: {}", e);
             }
@@ -200,7 +198,7 @@ fn handle_daemon_request(req: IpcRequest, handler: &mut DaemonHandler) -> IpcRes
         IpcRequest::ApplyUpdateNow => {
             let config = load_config();
             let daemon_config: DaemonConfig = (&config).into();
-            let mut updater = AutoUpdater::new(daemon_config);
+            let updater = AutoUpdater::new(daemon_config);
             match updater.apply_now_via_ipc() {
                 Ok(_) => IpcResponse::Result { success: true, message: "Actualizacion aplicada".to_string() },
                 Err(e) => IpcResponse::Error { message: format!("Error aplicando actualizacion: {}", e) }
@@ -222,7 +220,7 @@ fn handle_daemon_request(req: IpcRequest, handler: &mut DaemonHandler) -> IpcRes
             IpcResponse::ServerConfig { config }
         }
         IpcRequest::SetServerConfig { config } => {
-            let server_id = config.server_id.clone();
+            let _server_id = config.server_id.clone();
             let config = server_config::ServerConfig {
                 server_id: config.server_id,
                 java_path: config.java_path,

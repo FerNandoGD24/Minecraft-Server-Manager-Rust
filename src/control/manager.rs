@@ -44,7 +44,7 @@ impl ServerManager {
 
         // Buscar script de arranque
         let script_path = Self::find_start_script(server_dir);
-        let mut command = if let Some(script) = script_path {
+        let command = if let Some(script) = script_path {
             let mut cmd = Command::new(script);
             cmd.current_dir(server_dir);
             cmd

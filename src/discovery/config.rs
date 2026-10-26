@@ -1,4 +1,4 @@
-use crate::config::{load_config as load_global_config, Config};
+use crate::config::load_config as load_global_config;
 use crate::discovery::types::DiscoveryConfig;
 
 /// Carga configuracion de discovery desde config global

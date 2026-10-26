@@ -1,6 +1,4 @@
 use crate::tui::app::App;
-use crate::daemon::ServerInfo;
-use crate::monitoring::ResourceMetrics;
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
