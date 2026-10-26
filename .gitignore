@@ -1,8 +1,0 @@
-# Rust
-/target/
-**/*rs.bk
-Cargo.lock
-Cargo.toml.lock
-# Test
-config.json
-/test/
