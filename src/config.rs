@@ -5,27 +5,27 @@ use dirs;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-/// Configuración global persistente
+/// Configuracion global persistente
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     /// Directorios donde buscar servidores Minecraft
     pub search_dirs: Vec<PathBuf>,
-    /// Configuración del daemon
+    /// Configuracion del daemon
     pub daemon: DaemonConfigSection,
-    /// Configuración de la TUI
+    /// Configuracion de la TUI
     pub tui: TuiConfigSection,
-    /// Configuración de la consola
+    /// Configuracion de la consola
     pub console: ConsoleConfigSection,
 }
 
-/// Sección daemon en config.json
+/// Seccion daemon en config.json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DaemonConfigSection {
     pub auto_restart: bool,
     pub restart_check_interval: u64,
 }
 
-/// Sección TUI en config.json
+/// Seccion TUI en config.json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TuiConfigSection {
     pub theme: String,
@@ -33,7 +33,7 @@ pub struct TuiConfigSection {
     pub poll_interval_ms: u64,
 }
 
-/// Sección console en config.json
+/// Seccion console en config.json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConsoleConfigSection {
     pub detach_signal: String,
@@ -88,7 +88,7 @@ impl Default for ConsoleConfigSection {
     }
 }
 
-/// Ruta al archivo de configuración
+/// Ruta al archivo de configuracion
 pub fn config_path() -> PathBuf {
     dirs::home_dir()
         .unwrap_or_else(|| PathBuf::from("."))
@@ -96,7 +96,7 @@ pub fn config_path() -> PathBuf {
         .join("config.json")
 }
 
-/// Carga configuración desde config.json
+/// Carga configuracion desde config.json
 /// Si no existe, crea una por defecto y la guarda
 pub fn load_config() -> Config {
     let path = config_path();
@@ -124,7 +124,7 @@ pub fn load_config() -> Config {
     }
 }
 
-/// Guarda configuración en config.json
+/// Guarda configuracion en config.json
 pub fn save_config(config: &Config) -> bool {
     let path = config_path();
 

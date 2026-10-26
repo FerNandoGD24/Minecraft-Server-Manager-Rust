@@ -25,18 +25,18 @@ impl ServerManager {
         ServerManager { server, child: None }
     }
 
-    /// Obtiene información del servidor
+    /// Obtiene informacion del servidor
     pub fn server(&self) -> &ServerInfo {
         &self.server
     }
 
     /// Inicia el servidor
     pub fn start(&mut self) -> Result<ControlResult> {
-        // Verificar si ya está corriendo
+        // Verificar si ya esta corriendo
         if self.server.status == ServerStatus::Running {
             return Ok(ControlResult::failure(
                 ControlAction::Start,
-                "El servidor ya está corriendo",
+                "El servidor ya esta corriendo",
             ));
         }
 
@@ -76,11 +76,11 @@ impl ServerManager {
 
     /// Detiene el servidor enviando comando 'stop' a la consola
     pub fn stop(&mut self) -> Result<ControlResult> {
-        // Verificar si ya está parado
+        // Verificar si ya esta parado
         if self.server.status == ServerStatus::Stopped && self.child.is_none() {
             return Ok(ControlResult::failure(
                 ControlAction::Stop,
-                "El servidor ya está parado",
+                "El servidor ya esta parado",
             ));
         }
 
@@ -96,7 +96,7 @@ impl ServerManager {
         let start = Instant::now();
         while start.elapsed() < STOP_GRACEFUL_TIMEOUT {
             if let Ok(Some(_)) = child.try_wait() {
-                // Proceso terminó
+                // Proceso termino
                 self.child = None;
                 return Ok(ControlResult::success(
                     ControlAction::Stop,
@@ -111,7 +111,7 @@ impl ServerManager {
         eprintln!("Graceful timeout, enviando SIGTERM a PID {}", child.id());
         child.terminate()?;
 
-        // Esperar un poco más
+        // Esperar un poco mas
         let start = Instant::now();
         while start.elapsed() < STOP_FORCE_TIMEOUT {
             if let Ok(Some(_)) = child.try_wait() {
@@ -152,7 +152,7 @@ impl ServerManager {
         self.start()
     }
 
-    /// Envía un comando arbitrario a la consola del servidor
+    /// Envia un comando arbitrario a la consola del servidor
     pub fn send_command(&mut self, cmd: &str) -> Result<()> {
         let Some(ref mut child) = self.child else {
             return Err(ControlError::AlreadyStopped);

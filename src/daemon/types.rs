@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::Instant;
 
-/// Configuración por servidor (generada y gestionada por el manager)
+/// Configuracion por servidor (generada y gestionada por el manager)
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ServerConfig {
     pub server_id: String,
@@ -33,7 +33,7 @@ impl Default for ServerConfig {
     }
 }
 
-/// Configuración del daemon
+/// Configuracion del daemon
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DaemonConfig {
     /// Directorio base para PID/socket/logs
@@ -42,7 +42,7 @@ pub struct DaemonConfig {
     pub pid_file: PathBuf,
     /// Socket Unix
     pub socket_file: PathBuf,
-    /// Auto-restart servidores caídos
+    /// Auto-restart servidores caidos
     pub auto_restart: bool,
     /// Intervalo check auto-restart (segundos)
     pub restart_check_interval: u64,

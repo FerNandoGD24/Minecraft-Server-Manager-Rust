@@ -40,7 +40,7 @@ pub fn render_console(f: &mut Frame, app: &App, area: Rect) {
             );
             f.render_widget(header, chunks[0]);
 
-            // Output area - mostrar últimas líneas del buffer
+            // Output area - mostrar ultimas lineas del buffer
             let output_lines: Vec<Line> = app
                 .logs
                 .iter()
@@ -80,29 +80,29 @@ pub fn render_console(f: &mut Frame, app: &App, area: Rect) {
     }
 }
 
-/// Renderiza overlay de ayuda específica de consola
+/// Renderiza overlay de ayuda especifica de consola
 pub fn render_console_help(f: &mut Frame, area: Rect) {
     let help_text = vec![
         Line::from(""),
         Line::from(vec![Span::styled("CONSOLA INTERACTIVA", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))]),
         Line::from(""),
-        Line::from(vec![Span::styled("Comandos útiles:", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))]),
+        Line::from(vec![Span::styled("Comandos utiles:", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))]),
         Line::from("  help           - Lista comandos del servidor"),
-        Line::from("  say <msg>      - Envía mensaje a jugadores"),
+        Line::from("  say <msg>      - Envia mensaje a jugadores"),
         Line::from("  list           - Lista jugadores conectados"),
         Line::from("  stop           - Detiene el servidor (graceful)"),
         Line::from("  save-all       - Guarda mundo"),
         Line::from("  save-off/on    - Desactiva/activa auto-save"),
-        Line::from("  whitelist <on/off/add/remove> - Gestión whitelist"),
+        Line::from("  whitelist <on/off/add/remove> - Gestion whitelist"),
         Line::from("  op <player>    - Da OP a jugador"),
         Line::from("  deop <player>  - Quita OP a jugador"),
         Line::from("  kick <player>  - Expulsa jugador"),
         Line::from("  ban <player>   - Banea jugador"),
         Line::from(""),
-        Line::from(vec![Span::styled("Navegación:", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))]),
+        Line::from(vec![Span::styled("Navegacion:", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))]),
         Line::from("  ↑/↓           - Historial de comandos (si implementado)"),
         Line::from("  Tab           - Autocompletado (si implementado)"),
-        Line::from("  Ctrl+C        - Envía SIGINT al servidor (cuidado)"),
+        Line::from("  Ctrl+C        - Envia SIGINT al servidor (cuidado)"),
         Line::from("  Ctrl+\\        - Detach (VUELVE A DASHBOARD, servidor vivo)"),
         Line::from(""),
         Line::from(vec![Span::styled("IMPORTANTE:", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD))]),

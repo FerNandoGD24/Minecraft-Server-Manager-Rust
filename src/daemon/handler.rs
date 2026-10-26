@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
-/// Handler principal del daemon que integra todos los módulos
+/// Handler principal del daemon que integra todos los modulos
 pub struct DaemonHandler {
     pub config: DaemonConfig,
     pub discovery_search_dirs: Vec<PathBuf>,

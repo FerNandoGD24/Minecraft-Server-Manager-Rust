@@ -13,7 +13,7 @@ pub struct ConsoleManager {
     sessions: HashMap<u32, ConsoleSession>,
     server_managers: HashMap<u32, Arc<Mutex<ServerManager>>>,
     next_session_id: u32,
-    // Channels para comunicación con handlers
+    // Channels para comunicacion con handlers
     event_senders: HashMap<u32, Sender<ConsoleEvent>>,
 }
 
@@ -35,7 +35,7 @@ impl ConsoleManager {
 
     /// Adjunta una consola a un servidor por PID
     pub fn attach(&mut self, pid: u32) -> Result<ConsoleSession, ControlError> {
-        // Verificar que el servidor existe y está corriendo
+        // Verificar que el servidor existe y esta corriendo
         let _manager = self.server_managers.get(&pid)
             .ok_or_else(|| ControlError::ServerNotFound(std::path::PathBuf::from(format!("PID {}", pid))))?;
 
@@ -59,7 +59,7 @@ impl ConsoleManager {
         let handler = ConsoleHandler::new(session.buffer.clone(), self.config.detach_signal);
         let input_handle = handler.run_input_loop(tx.clone());
 
-        // Thread para leer output del servidor (simulado - en real leería del proceso)
+        // Thread para leer output del servidor (simulado - en real leeria del proceso)
         let buffer = session.buffer.clone();
         let output_handle = thread::spawn(move || {
             while let Ok(event) = rx.recv() {
@@ -67,13 +67,13 @@ impl ConsoleManager {
                     ConsoleEvent::Output(line) => {
                         write_output(&buffer, &line);
                         // Enviar al proceso servidor
-                        // En implementación real: server_manager.send_command(&line)
+                        // En implementacion real: server_manager.send_command(&line)
                     }
                     ConsoleEvent::Error(line) => {
                         write_output(&buffer, &format!("[ERROR] {}", line));
                     }
                     ConsoleEvent::ProcessEnded(code) => {
-                        write_output(&buffer, &format!("[Proceso terminado con código {}]", code));
+                        write_output(&buffer, &format!("[Proceso terminado con codigo {}]", code));
                         break;
                     }
                     ConsoleEvent::Resize(cols, rows) => {
@@ -93,7 +93,7 @@ impl ConsoleManager {
         // Cleanup terminal
         let _ = restore_terminal();
 
-        // Marcar sesión como detached
+        // Marcar sesion como detached
         session.detach();
         self.sessions.insert(session_id, session.clone());
 
@@ -103,25 +103,25 @@ impl ConsoleManager {
         Ok(session)
     }
 
-    /// Desadjunta una sesión (cleanup)
+    /// Desadjunta una sesion (cleanup)
     pub fn detach(&mut self, session_id: u32) -> Result<(), ControlError> {
         if let Some(session) = self.sessions.get_mut(&session_id) {
             session.detach();
             // El proceso servidor sigue vivo
             Ok(())
         } else {
-            Err(ControlError::IoError("Sesión no encontrada".to_string()))
+            Err(ControlError::IoError("Sesion no encontrada".to_string()))
         }
     }
 
-    /// Envía comando a la consola
+    /// Envia comando a la consola
     pub fn send_command(&mut self, session_id: u32, cmd: &str) -> Result<(), ControlError> {
         if let Some(sender) = self.event_senders.get(&session_id) {
             sender.send(ConsoleEvent::Output(cmd.to_string()))
                 .map_err(|e| ControlError::CommandWriteFailed(e.to_string()))?;
             Ok(())
         } else if let Some(session) = self.sessions.get(&session_id) {
-            // Sesión detached pero servidor vivo - usar ServerManager
+            // Sesion detached pero servidor vivo - usar ServerManager
             if let Some(manager) = self.server_managers.get(&session.server_pid) {
                 manager.lock().unwrap().send_command(cmd)
                     .map_err(|e| ControlError::CommandWriteFailed(e.to_string()))?;
@@ -130,11 +130,11 @@ impl ConsoleManager {
                 Err(ControlError::IoError("Servidor no registrado".to_string()))
             }
         } else {
-            Err(ControlError::IoError("Sesión no encontrada".to_string()))
+            Err(ControlError::IoError("Sesion no encontrada".to_string()))
         }
     }
 
-    /// Obtiene una sesión por ID
+    /// Obtiene una sesion por ID
     pub fn get_session(&self, session_id: u32) -> Option<&ConsoleSession> {
         self.sessions.get(&session_id)
     }

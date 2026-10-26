@@ -74,7 +74,7 @@ impl ConsoleHandler {
         }
     }
 
-    /// Verifica si la tecla coincide con la señal de detach
+    /// Verifica si la tecla coincide con la senal de detach
     fn is_detach_key(key: KeyEvent, signal: DetachSignal) -> bool {
         match signal {
             DetachSignal::CtrlBackslash => {

@@ -1,7 +1,7 @@
 use std::io::Write;
 use std::process::{Child, Command, Stdio};
 
-/// Wrapper de un proceso hijo con capacidad de escribir en stdin y enviar señales
+/// Wrapper de un proceso hijo con capacidad de escribir en stdin y enviar senales
 pub struct ManagedChild {
     child: Child,
 }
@@ -52,7 +52,7 @@ impl ManagedChild {
         self.child.wait()
     }
 
-    /// Envia señal SIGTERM para shutdown graceful
+    /// Envia senal SIGTERM para shutdown graceful
     #[cfg(target_os = "linux")]
     pub fn terminate(&self) -> Result<(), String> {
         let pid = self.child.id() as i32;
@@ -73,7 +73,7 @@ impl ManagedChild {
         Ok(())
     }
 
-    /// Envia señal SIGKILL (forzado)
+    /// Envia senal SIGKILL (forzado)
     #[cfg(target_os = "linux")]
     pub fn kill(&self) -> Result<(), String> {
         let pid = self.child.id() as i32;

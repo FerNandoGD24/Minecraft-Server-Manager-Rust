@@ -6,7 +6,7 @@ use std::path::PathBuf;
 pub enum ServerStatus {
     /// Servidor apagado
     Stopped,
-    /// Servidor en ejecución
+    /// Servidor en ejecucion
     Running,
 }
 
@@ -34,7 +34,7 @@ pub enum ServerService {
 }
 
 impl ServerService {
-    /// Identifica el servicio basándose en archivos presentes en el directorio
+    /// Identifica el servicio basandose en archivos presentes en el directorio
     pub fn detect_from_dir(dir: &std::path::Path) -> Self {
         // NeoForge: carpeta neoforge/ o neoforge.toml
         if dir.join("neoforge").is_dir() || dir.join("neoforge.toml").exists() {
@@ -64,12 +64,12 @@ impl ServerService {
     }
 }
 
-/// Información de un servidor Minecraft detectado
+/// Informacion de un servidor Minecraft detectado
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerInfo {
-    /// Identificador único (path like string)
+    /// Identificador unico (path like string)
     pub id: String,
-    /// Nombre del servidor (último componente del path)
+    /// Nombre del servidor (ultimo componente del path)
     pub name: String,
     /// Ruta al directorio del servidor
     pub path: PathBuf,
@@ -77,7 +77,7 @@ pub struct ServerInfo {
     pub status: ServerStatus,
     /// Tipo de servicio/modloader
     pub service: ServerService,
-    /// PID del proceso si está corriendo
+    /// PID del proceso si esta corriendo
     pub pid: Option<u32>,
 }
 
@@ -100,7 +100,7 @@ impl ServerInfo {
     }
 }
 
-/// Configuración del módulo de discovery
+/// Configuracion del modulo de discovery
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DiscoveryConfig {
     /// Directorios donde buscar servidores
@@ -122,7 +122,7 @@ impl Default for DiscoveryConfig {
 }
 
 impl DiscoveryConfig {
-    /// Crea una configuración vacía
+    /// Crea una configuracion vacia
     pub fn new() -> Self {
         DiscoveryConfig::default()
     }

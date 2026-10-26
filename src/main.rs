@@ -27,7 +27,7 @@ enum Commands {
     DaemonStatus,
     /// Reinicia el daemon
     DaemonRestart,
-    /// Gestiona configuración
+    /// Gestiona configuracion
     Config {
         #[command(subcommand)]
         action: ConfigAction,
@@ -245,7 +245,7 @@ fn handle_daemon_request(req: IpcRequest, handler: &mut DaemonHandler) -> IpcRes
                 } else if let Err(e) = config.save() {
                     IpcResponse::Error { message: format!("Error guardando config: {}", e) }
                 } else {
-                    IpcResponse::Result { success: true, message: "Configuración guardada. Cambios aplican en próximo reinicio".to_string() }
+                    IpcResponse::Result { success: true, message: "Configuracion guardada. Cambios aplican en proximo reinicio".to_string() }
                 }
             } else {
                 IpcResponse::Error { message: "Servidor no encontrado".to_string() }

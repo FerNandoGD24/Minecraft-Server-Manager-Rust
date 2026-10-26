@@ -1,7 +1,7 @@
 use crate::discovery::types::{ServerInfo, ServerService, ServerStatus};
 use std::path::{Path, PathBuf};
 
-/// Enumera procesos Java en ejecución inspeccionando /proc (Linux)
+/// Enumera procesos Java en ejecucion inspeccionando /proc (Linux)
 /// Devuelve una lista de (pid, working_dir, cmdline)
 #[cfg(target_os = "linux")]
 fn enumerate_java_processes() -> Vec<(u32, PathBuf, Vec<String>)> {
@@ -18,7 +18,7 @@ fn enumerate_java_processes() -> Vec<(u32, PathBuf, Vec<String>)> {
             continue;
         }
 
-        // Solo números (PIDs)
+        // Solo numeros (PIDs)
         if !entry.file_name().to_string_lossy().chars().all(|c| c.is_ascii_digit()) {
             continue;
         }
@@ -73,14 +73,14 @@ fn enumerate_java_processes() -> Vec<(u32, PathBuf, Vec<String>)> {
 
 #[cfg(not(target_os = "linux"))]
 fn enumerate_java_processes() -> Vec<(u32, PathBuf, Vec<String>)> {
-    // Implementación placeholder para otros SO
+    // Implementacion placeholder para otros SO
     // Se puede extender con `ps` command
     Vec::new()
 }
 
-/// Verifica si un directorio contiene archivos típicos de servidores Minecraft
+/// Verifica si un directorio contiene archivos tipicos de servidores Minecraft
 fn is_server_directory(dir: &Path) -> bool {
-    // server.jar es el indicador más común
+    // server.jar es el indicador mas comun
     if dir.join("server.jar").exists() {
         return true;
     }
@@ -92,7 +92,7 @@ fn is_server_directory(dir: &Path) -> bool {
     {
         return true;
     }
-    // Archivos de identificación de modloaders
+    // Archivos de identificacion de modloaders
     if dir.join("bukkit.yml").exists()
         || dir.join("spigot.yml").exists()
         || dir.join("paper.yml").exists()
@@ -113,7 +113,7 @@ fn detect_running_servers() -> Vec<ServerInfo> {
     let mut servers = Vec::new();
 
     for (pid, working_dir, cmdline) in processes {
-        // Verificar que el proceso esté relacionado con Minecraft
+        // Verificar que el proceso este relacionado con Minecraft
         let is_minecraft = cmdline.iter().any(|arg| {
             arg.contains("server.jar")
                 || arg.contains("nogui")
@@ -185,7 +185,7 @@ fn detect_stopped_servers(search_dirs: &[PathBuf]) -> Vec<ServerInfo> {
     servers
 }
 
-/// Combina detección de servidores running y stopped
+/// Combina deteccion de servidores running y stopped
 /// Si un directorio aparece en ambos, se prefiere el estado Running
 pub fn scan_servers(search_dirs: &[PathBuf]) -> Vec<ServerInfo> {
     let running = detect_running_servers();

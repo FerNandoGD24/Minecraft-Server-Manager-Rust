@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-/// Métricas de recursos de un proceso
+/// Metricas de recursos de un proceso
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ResourceMetrics {
     /// Uso de CPU en porcentaje (0.0 - 100.0+)
@@ -11,7 +11,7 @@ pub struct ResourceMetrics {
     pub memory_rss: u64,
     /// Memoria virtual en bytes
     pub memory_virtual: u64,
-    /// Bytes leídos de disco por segundo
+    /// Bytes leidos de disco por segundo
     pub disk_read_bps: u64,
     /// Bytes escritos en disco por segundo
     pub disk_write_bps: u64,
@@ -19,7 +19,7 @@ pub struct ResourceMetrics {
     pub net_rx_bps: u64,
     /// Bytes enviados de red por segundo
     pub net_tx_bps: u64,
-    /// Timestamp de última actualización (Unix ms)
+    /// Timestamp de ultima actualizacion (Unix ms)
     pub timestamp_ms: u64,
 }
 
@@ -37,7 +37,7 @@ impl ResourceMetrics {
     }
 }
 
-/// Configuración del monitor de recursos
+/// Configuracion del monitor de recursos
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MonitoringConfig {
     /// Intervalo de polling en milisegundos
@@ -55,5 +55,5 @@ impl Default for MonitoringConfig {
     }
 }
 
-/// Almacén thread-safe de métricas por PID
+/// Almacen thread-safe de metricas por PID
 pub type MetricsStore = Arc<Mutex<HashMap<u32, ResourceMetrics>>>;

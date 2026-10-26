@@ -8,7 +8,7 @@ pub enum ControlAction {
     Restart,
 }
 
-/// Resultado de una operación de control
+/// Resultado de una operacion de control
 #[derive(Debug, Clone)]
 pub struct ControlResult {
     pub action: ControlAction,
@@ -53,8 +53,8 @@ pub enum ControlError {
 impl std::fmt::Display for ControlError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ControlError::AlreadyRunning => write!(f, "Servidor ya está corriendo"),
-            ControlError::AlreadyStopped => write!(f, "Servidor ya está parado"),
+            ControlError::AlreadyRunning => write!(f, "Servidor ya esta corriendo"),
+            ControlError::AlreadyStopped => write!(f, "Servidor ya esta parado"),
             ControlError::ServerNotFound(p) => write!(f, "Servidor no encontrado: {}", p.display()),
             ControlError::ScriptNotFound(p) => write!(f, "Script no encontrado: {}", p.display()),
             ControlError::ProcessSpawnFailed(e) => write!(f, "Error iniciando proceso: {}", e),

@@ -50,7 +50,7 @@ impl IpcServer {
                     });
                 }
                 Err(e) => {
-                    eprintln!("Error aceptando conexión: {}", e);
+                    eprintln!("Error aceptando conexion: {}", e);
                 }
             }
         }
@@ -69,7 +69,7 @@ impl IpcClient {
         IpcClient { config: config.clone() }
     }
 
-    /// Envía un request y espera respuesta
+    /// Envia un request y espera respuesta
     pub fn send(&self, request: IpcRequest) -> Result<IpcResponse, String> {
         let mut stream = UnixStream::connect(&self.config.socket_file)
             .map_err(|e| format!("Error conectando a daemon: {}", e))?;

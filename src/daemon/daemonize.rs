@@ -18,13 +18,13 @@ pub fn daemonize(config: &DaemonConfig) -> Result<(), String> {
             process::exit(0);
         }
         Ok(ForkResult::Child) => {
-            // Child continúa
+            // Child continua
         }
-        Err(e) => return Err(format!("Fork #1 falló: {}", e)),
+        Err(e) => return Err(format!("Fork #1 fallo: {}", e)),
     }
 
-    // Nueva sesión (setsid) - child se convierte en session leader
-    setsid().map_err(|e| format!("setsid falló: {}", e))?;
+    // Nueva sesion (setsid) - child se convierte en session leader
+    setsid().map_err(|e| format!("setsid fallo: {}", e))?;
 
     // Fork #2 - para asegurar que no somos session leader
     match unsafe { fork() } {
@@ -35,7 +35,7 @@ pub fn daemonize(config: &DaemonConfig) -> Result<(), String> {
         Ok(ForkResult::Child) => {
             // Child final - el daemon real
         }
-        Err(e) => return Err(format!("Fork #2 falló: {}", e)),
+        Err(e) => return Err(format!("Fork #2 fallo: {}", e)),
     }
 
     // Cambiar directorio de trabajo
@@ -45,7 +45,7 @@ pub fn daemonize(config: &DaemonConfig) -> Result<(), String> {
     // Umask permisivo
     unsafe { libc::umask(0o027) };
 
-    // Cerrar FDs estándar y redirigir a /dev/null
+    // Cerrar FDs estandar y redirigir a /dev/null
     redirect_stdio()?;
 
     // Escribir PID file
@@ -64,7 +64,7 @@ fn redirect_stdio() -> Result<(), String> {
 
     let fd = devnull.as_raw_fd();
 
-    // dup2 para cada fd estándar
+    // dup2 para cada fd estandar
     unsafe {
         libc::dup2(fd, 0); // stdin
         libc::dup2(fd, 1); // stdout
@@ -96,7 +96,7 @@ pub fn remove_pid_file(config: &DaemonConfig) -> Result<(), String> {
     Ok(())
 }
 
-/// Verifica si el daemon ya está corriendo
+/// Verifica si el daemon ya esta corriendo
 pub fn is_daemon_running(config: &DaemonConfig) -> bool {
     if !config.pid_file.exists() {
         return false;

@@ -9,7 +9,7 @@ use tokio::sync::mpsc;
 use tokio::task;
 use crate::daemon::version_tracker::fetch_changelog_for_version;
 
-/// Modos de la aplicación
+/// Modos de la aplicacion
 #[derive(Debug, Clone, PartialEq)]
 pub enum AppMode {
     Dashboard,
@@ -21,7 +21,7 @@ pub enum AppMode {
     ServerConfig { server_id: String, field: usize, editing: bool, config: crate::daemon::types::ServerConfig },
 }
 
-/// Acciones de servidor para confirmación
+/// Acciones de servidor para confirmacion
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ServerAction {
     Start,
@@ -29,7 +29,7 @@ pub enum ServerAction {
     Restart,
 }
 
-/// Estado principal de la aplicación
+/// Estado principal de la aplicacion
 pub struct App {
     pub client: IpcClient,
     pub servers: Vec<ServerInfo>,
@@ -67,7 +67,7 @@ impl App {
         }
     }
 
-    /// Inicializa la conexión y carga servidores
+    /// Inicializa la conexion y carga servidores
     pub async fn initialize(&mut self) -> anyhow::Result<()> {
         self.refresh_servers().await?;
         self.start_metrics_polling().await;
@@ -97,7 +97,7 @@ impl App {
         Ok(())
     }
 
-    /// Inicia task de polling de métricas cada 2s
+    /// Inicia task de polling de metricas cada 2s
     async fn start_metrics_polling(&mut self) {
         let client = self.client.clone();
         let (tx, mut rx) = mpsc::channel::<HashMap<String, ResourceMetrics>>(32);
@@ -434,7 +434,7 @@ impl App {
                 self.mode = AppMode::Console { server_id };
                 self.status_message = format!("Consola adjunta a {} (PID: {}) - Ctrl+\\ para detach", server.name, pid);
             } else {
-                self.status_message = "Servidor no está corriendo".to_string();
+                self.status_message = "Servidor no esta corriendo".to_string();
             }
         }
         Ok(())

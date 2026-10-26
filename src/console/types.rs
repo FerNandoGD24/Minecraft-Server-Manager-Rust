@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 use std::collections::VecDeque;
 
-/// Señal para detach de la consola
+/// Senal para detach de la consola
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DetachSignal {
     /// Ctrl+\ (default)
@@ -21,11 +21,11 @@ impl Default for DetachSignal {
 /// Evento de la consola
 #[derive(Debug, Clone)]
 pub enum ConsoleEvent {
-    /// Línea de output del servidor
+    /// Linea de output del servidor
     Output(String),
     /// Error del servidor
     Error(String),
-    /// Servidor terminó
+    /// Servidor termino
     ProcessEnded(i32),
     /// Resize de terminal
     Resize(u16, u16),
@@ -72,7 +72,7 @@ impl ConsoleBuffer {
     }
 }
 
-/// Sesión de consola activa
+/// Sesion de consola activa
 #[derive(Debug, Clone)]
 pub struct ConsoleSession {
     pub id: u32,
@@ -106,7 +106,7 @@ impl ConsoleSession {
     }
 }
 
-/// Configuración de la consola
+/// Configuracion de la consola
 #[derive(Debug, Clone)]
 pub struct ConsoleConfig {
     pub detach_signal: DetachSignal,

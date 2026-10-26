@@ -6,7 +6,7 @@ use std::thread;
 use std::time::{Duration, Instant};
 use sysinfo::{Pid, System, ProcessRefreshKind, ProcessesToUpdate};
 
-/// Collector que corre en background y actualiza métricas cada intervalo
+/// Collector que corre en background y actualiza metricas cada intervalo
 pub struct ResourceCollector {
     store: MetricsStore,
     config: MonitoringConfig,
@@ -100,13 +100,13 @@ impl ResourceCollector {
         }
     }
 
-    /// Obtiene métricas actuales para un PID
+    /// Obtiene metricas actuales para un PID
     pub fn get_metrics(&self, pid: u32) -> Option<ResourceMetrics> {
         let store = self.store.lock().ok()?;
         store.get(&pid).cloned()
     }
 
-    /// Obtiene todas las métricas actuales
+    /// Obtiene todas las metricas actuales
     pub fn get_all_metrics(&self) -> std::collections::HashMap<u32, ResourceMetrics> {
         self.store.lock().map(|m| m.clone()).unwrap_or_default()
     }

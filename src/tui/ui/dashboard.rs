@@ -19,11 +19,11 @@ pub fn render_dashboard(f: &mut Frame, app: &mut App, area: Rect) {
     // Panel izquierdo: lista de servidores
     render_server_list(f, app, chunks[0]);
 
-    // Panel derecho: métricas + logs
+    // Panel derecho: metricas + logs
     let right_chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(12),  // Métricas
+            Constraint::Length(12),  // Metricas
             Constraint::Min(8),      // Logs
         ])
         .split(chunks[1]);
@@ -78,12 +78,12 @@ fn render_server_list(f: &mut Frame, app: &mut App, area: Rect) {
     f.render_stateful_widget(list, area, &mut state);
 }
 
-/// Renderiza panel de métricas
+/// Renderiza panel de metricas
 fn render_metrics_panel(f: &mut Frame, app: &App, area: Rect) {
     let server = app.selected_server();
 
     let metrics_text = if let Some(server) = server {
-        // Buscar métricas para este servidor
+        // Buscar metricas para este servidor
         let metrics = app.metrics.get(&server.id);
 
         let cpu = metrics.map(|m| format!("{:.1}%", m.cpu_percent)).unwrap_or_else(|| "N/A".to_string());
@@ -120,13 +120,13 @@ fn render_metrics_panel(f: &mut Frame, app: &App, area: Rect) {
             ]),
         ]
     } else {
-        vec![Line::from("Selecciona un servidor para ver métricas")]
+        vec![Line::from("Selecciona un servidor para ver metricas")]
     };
 
     let paragraph = Paragraph::new(metrics_text)
         .block(
             Block::default()
-                .title(" MÉTRICAS ")
+                .title(" METRICAS ")
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(Color::Cyan)),
         )
@@ -149,7 +149,7 @@ fn render_logs_panel(f: &mut Frame, app: &App, area: Rect) {
     let paragraph = Paragraph::new(logs_text)
         .block(
             Block::default()
-                .title(" LOGS (últimas 10) ")
+                .title(" LOGS (ultimas 10) ")
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(Color::DarkGray)),
         )
@@ -173,7 +173,7 @@ pub fn render_status_bar(f: &mut Frame, app: &App, area: Rect) {
         crate::tui::app::AppMode::ConfirmAction { .. } => " [y/Enter] Confirm  [n/Esc] Cancel ",
         crate::tui::app::AppMode::UpdateAvailable { .. } => " [c] Changelog  [d] Download  [Esc/q] Cancel ",
         crate::tui::app::AppMode::Changelog { .. } => " [Esc/q/c] Close changelog ",
-        crate::tui::app::AppMode::ServerConfig { editing, .. } => if editing { " ESC/Enter: salir edición" } else { " Tab/Shift+Tab: navegar  |  Enter: editar/guardar  |  ESC/q: cancelar" },
+        crate::tui::app::AppMode::ServerConfig { editing, .. } => if editing { " ESC/Enter: salir edicion" } else { " Tab/Shift+Tab: navegar  |  Enter: editar/guardar  |  ESC/q: cancelar" },
     };
 
     let status = Span::styled(&app.status_message, Style::default().fg(Color::Yellow));
@@ -227,7 +227,7 @@ pub fn render_help(f: &mut Frame, area: Rect) {
     f.render_widget(paragraph, popup_area);
 }
 
-/// Renderiza overlay de confirmación
+/// Renderiza overlay de confirmacion
 pub fn render_confirm(f: &mut Frame, app: &App, area: Rect) {
     if let crate::tui::app::AppMode::ConfirmAction { action, server_id } = &app.mode {
         let server_name = app.servers.iter().find(|s| s.id == *server_id).map(|s| s.name.as_str()).unwrap_or("desconocido");
@@ -240,17 +240,17 @@ pub fn render_confirm(f: &mut Frame, app: &App, area: Rect) {
 
         let text = vec![
             Line::from(""),
-            Line::from(vec![Span::styled(format!("¿{} {}?", action_text, server_name), Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))]),
+            Line::from(vec![Span::styled(format!("{} {}?", action_text, server_name), Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))]),
             Line::from(""),
-            Line::from("Esta acción afectará al servidor seleccionado."),
+            Line::from("Esta accion afectara al servidor seleccionado."),
             Line::from(""),
-            Line::from(vec![Span::styled("[y/Enter] Sí  [n/Esc] No", Style::default().fg(Color::Cyan))]),
+            Line::from(vec![Span::styled("[y/Enter] Si  [n/Esc] No", Style::default().fg(Color::Cyan))]),
         ];
 
         let paragraph = Paragraph::new(text)
             .block(
                 Block::default()
-                    .title(" CONFIRMACIÓN ")
+                    .title(" CONFIRMACION ")
                     .borders(Borders::ALL)
                     .border_style(Style::default().fg(Color::Yellow)),
             )
@@ -263,15 +263,15 @@ pub fn render_confirm(f: &mut Frame, app: &App, area: Rect) {
     }
 }
 
-/// Renderiza overlay de actualización disponible
+/// Renderiza overlay de actualizacion disponible
 pub fn render_update_available(f: &mut Frame, app: &App, area: Rect) {
     if let crate::tui::app::AppMode::UpdateAvailable { version, downloaded, .. } = &app.mode {
         let text = vec![
             Line::from(""),
-            Line::from(vec![Span::styled("ACTUALIZACIÓN DISPONIBLE", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))]),
+            Line::from(vec![Span::styled("ACTUALIZACION DISPONIBLE", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))]),
             Line::from(""),
-            Line::from(vec![Span::styled(format!("Versión: {}", version), Style::default().fg(Color::Cyan))]),
-            Line::from(vec![Span::styled(format!("Descargado: {}", if *downloaded { "Sí" } else { "No" }), Style::default().fg(Color::Green))]),
+            Line::from(vec![Span::styled(format!("Version: {}", version), Style::default().fg(Color::Cyan))]),
+            Line::from(vec![Span::styled(format!("Descargado: {}", if *downloaded { "Si" } else { "No" }), Style::default().fg(Color::Green))]),
             Line::from(""),
             Line::from("Acciones:"),
             Line::from("  [c] Ver changelog"),
@@ -282,7 +282,7 @@ pub fn render_update_available(f: &mut Frame, app: &App, area: Rect) {
         let paragraph = Paragraph::new(text)
             .block(
                 Block::default()
-                    .title(" ACTUALIZACIÓN ")
+                    .title(" ACTUALIZACION ")
                     .borders(Borders::ALL)
                     .border_style(Style::default().fg(Color::Yellow)),
             )
@@ -320,13 +320,13 @@ pub fn render_changelog(f: &mut Frame, app: &App, area: Rect) {
     }
 }
 
-/// Renderiza overlay de configuración del servidor
+/// Renderiza overlay de configuracion del servidor
 pub fn render_server_config(f: &mut Frame, app: &App, area: Rect) {
     if let crate::tui::app::AppMode::ServerConfig { config, field, editing, .. } = &app.mode {
         let fields = [
             ("Java Path", &config.java_path),
             ("RAM Inicial (Xms)", &config.xms),
-            ("RAM Máxima (Xmx)", &config.xmx),
+            ("RAM Maxima (Xmx)", &config.xmx),
             ("JVM Extra Args", &config.jvm_extra_args),
             ("Puerto", &config.server_port.to_string()),
             ("Max Jugadores", &config.max_players.to_string()),
@@ -375,20 +375,20 @@ pub fn render_server_config(f: &mut Frame, app: &App, area: Rect) {
 
         let mut all_lines = vec![
             Line::from(""),
-            Line::from(vec![Span::styled("CONFIGURACIÓN DEL SERVIDOR", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))]),
+            Line::from(vec![Span::styled("CONFIGURACION DEL SERVIDOR", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))]),
             Line::from(""),
         ];
         all_lines.extend(lines);
         all_lines.push(Line::from(""));
         all_lines.push(Line::from(vec![Span::styled(
-            if *editing { "ESC/Enter: salir edición  |  Tab/Shift+Tab: navegar" } else { "Tab/Shift+Tab: navegar  |  Enter: editar/guardar  |  ESC/q: cancelar" },
+            if *editing { "ESC/Enter: salir edicion  |  Tab/Shift+Tab: navegar" } else { "Tab/Shift+Tab: navegar  |  Enter: editar/guardar  |  ESC/q: cancelar" },
             Style::default().fg(Color::DarkGray)
         )]));
 
         let paragraph = Paragraph::new(all_lines)
             .block(
                 Block::default()
-                    .title(" CONFIGURACIÓN ")
+                    .title(" CONFIGURACION ")
                     .borders(Borders::ALL)
                     .border_style(Style::default().fg(Color::Yellow)),
             )

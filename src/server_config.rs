@@ -76,7 +76,7 @@ impl ServerConfig {
         let content = format!(
             r#"#!/bin/bash
 # Auto-generado por mc-manager - NO EDITAR MANUALMENTE
-# Cambia la configuración desde la TUI (tecla 'e')
+# Cambia la configuracion desde la TUI (tecla 'e')
 
 {} -Xms{} -Xmx{} {} -jar server.jar nogui
 "#,
@@ -94,7 +94,7 @@ impl ServerConfig {
     pub fn generate_server_properties(&self, server_dir: &PathBuf) -> anyhow::Result<()> {
         let content = format!(
             r#"# Auto-generado por mc-manager - NO EDITAR MANUALMENTE
-# Cambia la configuración desde la TUI (tecla 'e')
+# Cambia la configuracion desde la TUI (tecla 'e')
 
 server-port={}
 max-players={}
