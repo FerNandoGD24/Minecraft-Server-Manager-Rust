@@ -16,11 +16,8 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             artifact: mc-manager-linux-x86_64
-            runner: ubuntu-latest
           - target: aarch64-unknown-linux-gnu
             artifact: mc-manager-linux-aarch64
-            runner: ubuntu-latest
-    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
