@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            artifact: mc-manager-linux-x86_64
+            runner: ubuntu-latest
+          - target: aarch64-unknown-linux-gnu
+            artifact: mc-manager-linux-aarch64
+            runner: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Install dependencies (ARM64)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu pkg-config-aarch64-linux-gnu libssl-dev:arm64
+      - name: Build
+        run: cargo build --release --bin mc-manager --target ${{ matrix.target }}
+      - name: Copy binary
+        run: |
+          cp target/${{ matrix.target }}/release/mc-manager ${{ matrix.artifact }}
+      - name: Calculate SHA256
+        run: |
+          sha256sum ${{ matrix.artifact }} > ${{ matrix.artifact }}.sha256
+          cat ${{ matrix.artifact }}.sha256
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            ${{ matrix.artifact }}
+            ${{ matrix.artifact }}.sha256
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+      - name: List files
+        run: ls -la
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            mc-manager-linux-x86_64
+            mc-manager-linux-x86_64.sha256
+            mc-manager-linux-aarch64
+            mc-manager-linux-aarch64.sha256
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
