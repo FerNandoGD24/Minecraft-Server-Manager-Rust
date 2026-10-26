@@ -49,17 +49,29 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download x86_64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mc-manager-linux-x86_64
+          path: artifacts/x86_64
+      - name: Download aarch64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mc-manager-linux-aarch64
+          path: artifacts/aarch64
       - name: List files
-        run: ls -la
+        run: |
+          ls -la artifacts/
+          ls -la artifacts/x86_64/
+          ls -la artifacts/aarch64/
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            mc-manager-linux-x86_64
-            mc-manager-linux-x86_64.sha256
-            mc-manager-linux-aarch64
-            mc-manager-linux-aarch64.sha256
+            artifacts/x86_64/mc-manager-linux-x86_64
+            artifacts/x86_64/mc-manager-linux-x86_64.sha256
+            artifacts/aarch64/mc-manager-linux-aarch64
+            artifacts/aarch64/mc-manager-linux-aarch64.sha256
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
