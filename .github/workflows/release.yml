@@ -21,22 +21,34 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-      - name: Build
+      - name: Build mc-manager
         run: cargo build --release --bin mc-manager --target ${{ matrix.target }}
-      - name: Copy binary
+      - name: Build mc-manager-installer
+        run: cargo build --release --bin mc-manager-installer --target ${{ matrix.target }}
+      - name: Copy binaries
         run: |
           cp target/${{ matrix.target }}/release/mc-manager ${{ matrix.artifact }}
+          cp target/${{ matrix.target }}/release/mc-manager-installer mc-manager-installer-linux-x86_64
       - name: Calculate SHA256
         run: |
           sha256sum ${{ matrix.artifact }} > ${{ matrix.artifact }}.sha256
+          sha256sum mc-manager-installer-linux-x86_64 > mc-manager-installer-linux-x86_64.sha256
           cat ${{ matrix.artifact }}.sha256
-      - name: Upload artifact
+          cat mc-manager-installer-linux-x86_64.sha256
+      - name: Upload mc-manager artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
           path: |
             ${{ matrix.artifact }}
             ${{ matrix.artifact }}.sha256
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mc-manager-installer-linux-x86_64
+          path: |
+            mc-manager-installer-linux-x86_64
+            mc-manager-installer-linux-x86_64.sha256
 
   release:
     needs: build
@@ -44,19 +56,28 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download x86_64 artifact
+      - name: Download mc-manager artifact
         uses: actions/download-artifact@v4
         with:
           name: mc-manager-linux-x86_64
           path: artifacts/x86_64
+      - name: Download installer artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mc-manager-installer-linux-x86_64
+          path: artifacts/installer
       - name: List files
-        run: ls -la artifacts/x86_64/
+        run: |
+          ls -la artifacts/
+          ls -la artifacts/x86_64/
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
             artifacts/x86_64/mc-manager-linux-x86_64
             artifacts/x86_64/mc-manager-linux-x86_64.sha256
+            mc-manager-installer-linux-x86_64
+            mc-manager-installer-linux-x86_64.sha256
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
