@@ -8,4 +8,4 @@ config.json
 #Agente
 skills-lock.json
 .agents
-/init/README.md
+/init/README.md*.md
