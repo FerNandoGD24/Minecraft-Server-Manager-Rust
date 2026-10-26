@@ -2,7 +2,7 @@ use clap::Parser;
 use inquire::Select;
 use inquire::Confirm;
 use reqwest::blocking::Client;
-use sha2::Digest;
+use serde::Deserialize;
 use std::fs::Permissions;
 use std::io::Write;
 use std::os::unix::fs::PermissionsExt;
@@ -15,6 +15,20 @@ const INIT_SYSV: &str = include_str!("../../init/mc-manager.sysv");
 const INIT_DINIT: &str = include_str!("../../init/mc-manager.dinit");
 const INIT_RUNIT: &str = include_str!("../../init/runit/run");
 const INIT_DEFAULT: &str = include_str!("../../init/mc-manager.default");
+
+const GITHUB_REPO: &str = "FerNandoGD24/Minecraft-Server-Manager-Rust";
+
+#[derive(Deserialize)]
+struct GitHubRelease {
+    tag_name: String,
+    assets: Vec<ReleaseAsset>,
+}
+
+#[derive(Deserialize)]
+struct ReleaseAsset {
+    name: String,
+    browser_download_url: String,
+}
 
 #[derive(Parser)]
 #[command(name = "mc-manager-installer", about = "Instala Minecraft Server Manager")]
@@ -56,19 +70,34 @@ fn install_precompiled() -> anyhow::Result<()> {
         "aarch64" => "mc-manager-linux-aarch64",
         _ => anyhow::bail!("Arquitectura no soportada"),
     };
-    let version = "2.1.0";
+
+    // Fetch latest release version from GitHub API
+    let (version, download_url) = fetch_latest_release(asset)?;
     println!("Descargando v{}...", version);
+
     let dest = PathBuf::from("/tmp/mc-manager.new");
-    let url = format!(
-        "https://github.com/FerNandoGD24/Minecraft-Server-Manager-Rust/releases/download/v{}/{}",
-        version, asset
-    );
     let client = Client::new();
-    let mut resp = client.get(&url).send()?;
+    let mut resp = client.get(&download_url).send()?;
     let mut out = std::io::BufWriter::new(std::fs::File::create(&dest)?);
     std::io::copy(&mut resp, &mut out)?;
     out.flush()?;
     install_and_configure(&dest)
+}
+
+fn fetch_latest_release(asset_name: &str) -> anyhow::Result<(String, String)> {
+    let client = Client::new();
+    let url = format!("https://api.github.com/repos/FerNandoGD24/Minecraft-Server-Manager-Rust/releases/latest");
+    let release: GitHubRelease = client
+        .get(&url)
+        .header("User-Agent", "mc-manager-installer")
+        .send()?
+        .json()?;
+
+    let version = release.tag_name.trim_start_matches('v').to_string();
+    let asset = release.assets.iter().find(|a| a.name == asset_name)
+        .ok_or_else(|| anyhow::anyhow!("Asset {} no encontrado en release", asset_name))?;
+
+    Ok((version, asset.browser_download_url.clone()))
 }
 
 fn install_from_source() -> anyhow::Result<()> {
