@@ -70,14 +70,15 @@ jobs:
         run: |
           ls -la artifacts/
           ls -la artifacts/x86_64/
+          ls -la artifacts/installer/
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
             artifacts/x86_64/mc-manager-linux-x86_64
             artifacts/x86_64/mc-manager-linux-x86_64.sha256
-            mc-manager-installer-linux-x86_64
-            mc-manager-installer-linux-x86_64.sha256
+            artifacts/installer/mc-manager-installer-linux-x86_64
+            artifacts/installer/mc-manager-installer-linux-x86_64.sha256
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
