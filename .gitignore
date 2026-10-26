@@ -6,5 +6,3 @@ Cargo.toml.lock
 # Test
 config.json
 /test/
-# Git
-.gitignore
