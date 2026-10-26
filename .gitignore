@@ -6,6 +6,5 @@ Cargo.toml.lock
 config.json
 /tests/
 #Agente
-*md
 skills-lock.json
 .agents
