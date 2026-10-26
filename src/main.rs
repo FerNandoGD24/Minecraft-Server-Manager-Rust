@@ -1,10 +1,15 @@
-use clap::{Parser, Subcommand};
-use Minecraft_Server_Manager_Rust::config::{load_config, save_config, Config, config_path};
-use Minecraft_Server_Manager_Rust::daemon::{daemonize, IpcServer, DaemonHandler, IpcClient, IpcRequest, IpcResponse, is_daemon_running, get_daemon_pid, AutoUpdater, DaemonConfig};
-use Minecraft_Server_Manager_Rust::tui::run_tui;
+use Minecraft_Server_Manager_Rust::config::{Config, config_path, load_config, save_config};
 use Minecraft_Server_Manager_Rust::daemon::types::UpdateStatus;
+use Minecraft_Server_Manager_Rust::daemon::{
+    AutoUpdater, DaemonConfig, DaemonHandler, IpcClient, IpcRequest, IpcResponse, IpcServer,
+    daemonize, get_daemon_pid, is_daemon_running,
+};
 use Minecraft_Server_Manager_Rust::server_config;
+use Minecraft_Server_Manager_Rust::tui::run_tui;
+use clap::{Parser, Subcommand};
 use std::env;
+
+/// codigo
 
 #[derive(Parser)]
 #[command(name = "mc-manager", about = "Minecraft Server Manager - TUI + Daemon")]
@@ -85,7 +90,9 @@ fn daemon_start() -> anyhow::Result<()> {
     daemonize(&daemon_config).map_err(|e| anyhow::anyhow!("{}", e))?;
 
     let mut handler = DaemonHandler::new(daemon_config.clone(), config.search_dirs.clone());
-    handler.initialize().map_err(|e| anyhow::anyhow!("Init error: {}", e))?;
+    handler
+        .initialize()
+        .map_err(|e| anyhow::anyhow!("Init error: {}", e))?;
 
     // Auto-update check on daemon start
     let mut updater = AutoUpdater::new(daemon_config.clone());
@@ -93,18 +100,23 @@ fn daemon_start() -> anyhow::Result<()> {
         eprintln!("Auto-update check failed: {}", e);
     }
 
-    let ipc_server = IpcServer::new(&daemon_config).map_err(|e| anyhow::anyhow!("IPC error: {}", e))?;
+    let ipc_server =
+        IpcServer::new(&daemon_config).map_err(|e| anyhow::anyhow!("IPC error: {}", e))?;
 
     let handler_fn = move |req| handle_daemon_request(req, &mut handler);
 
-    ipc_server.run(handler_fn).map_err(|e| anyhow::anyhow!("IPC run error: {}", e))
+    ipc_server
+        .run(handler_fn)
+        .map_err(|e| anyhow::anyhow!("IPC run error: {}", e))
 }
 
 fn handle_daemon_request(req: IpcRequest, handler: &mut DaemonHandler) -> IpcResponse {
     match req {
         IpcRequest::ListServers => {
             handler.refresh_servers().ok();
-            let servers: Vec<Minecraft_Server_Manager_Rust::daemon::types::ServerInfo> = handler.server_managers.iter()
+            let servers: Vec<Minecraft_Server_Manager_Rust::daemon::types::ServerInfo> = handler
+                .server_managers
+                .iter()
                 .map(|(_id, mgr)| {
                     let mgr = mgr.lock().unwrap();
                     let s = mgr.server();
@@ -124,33 +136,54 @@ fn handle_daemon_request(req: IpcRequest, handler: &mut DaemonHandler) -> IpcRes
             if let Some(mgr) = handler.server_managers.get(&server_id) {
                 let mut mgr = mgr.lock().unwrap();
                 match mgr.start() {
-                    Ok(_) => IpcResponse::Result { success: true, message: "Iniciado".to_string() },
-                    Err(e) => IpcResponse::Error { message: e.to_string() },
+                    Ok(_) => IpcResponse::Result {
+                        success: true,
+                        message: "Iniciado".to_string(),
+                    },
+                    Err(e) => IpcResponse::Error {
+                        message: e.to_string(),
+                    },
                 }
             } else {
-                IpcResponse::Error { message: "Servidor no encontrado".to_string() }
+                IpcResponse::Error {
+                    message: "Servidor no encontrado".to_string(),
+                }
             }
         }
         IpcRequest::StopServer { server_id } => {
             if let Some(mgr) = handler.server_managers.get(&server_id) {
                 let mut mgr = mgr.lock().unwrap();
                 match mgr.stop() {
-                    Ok(_) => IpcResponse::Result { success: true, message: "Detenido".to_string() },
-                    Err(e) => IpcResponse::Error { message: e.to_string() },
+                    Ok(_) => IpcResponse::Result {
+                        success: true,
+                        message: "Detenido".to_string(),
+                    },
+                    Err(e) => IpcResponse::Error {
+                        message: e.to_string(),
+                    },
                 }
             } else {
-                IpcResponse::Error { message: "Servidor no encontrado".to_string() }
+                IpcResponse::Error {
+                    message: "Servidor no encontrado".to_string(),
+                }
             }
         }
         IpcRequest::RestartServer { server_id } => {
             if let Some(mgr) = handler.server_managers.get(&server_id) {
                 let mut mgr = mgr.lock().unwrap();
                 match mgr.restart() {
-                    Ok(_) => IpcResponse::Result { success: true, message: "Reiniciado".to_string() },
-                    Err(e) => IpcResponse::Error { message: e.to_string() },
+                    Ok(_) => IpcResponse::Result {
+                        success: true,
+                        message: "Reiniciado".to_string(),
+                    },
+                    Err(e) => IpcResponse::Error {
+                        message: e.to_string(),
+                    },
                 }
             } else {
-                IpcResponse::Error { message: "Servidor no encontrado".to_string() }
+                IpcResponse::Error {
+                    message: "Servidor no encontrado".to_string(),
+                }
             }
         }
         IpcRequest::Shutdown => {
@@ -165,7 +198,10 @@ fn handle_daemon_request(req: IpcRequest, handler: &mut DaemonHandler) -> IpcRes
         }
         IpcRequest::ReloadConfig => {
             handler.refresh_servers().ok();
-            IpcResponse::Result { success: true, message: "Config recargada".to_string() }
+            IpcResponse::Result {
+                success: true,
+                message: "Config recargada".to_string(),
+            }
         }
         IpcRequest::CheckUpdates => {
             let config = load_config();
@@ -173,14 +209,20 @@ fn handle_daemon_request(req: IpcRequest, handler: &mut DaemonHandler) -> IpcRes
             let mut updater = AutoUpdater::new(daemon_config);
             match updater.check_and_prepare() {
                 Ok(_) => {
-                    let status = updater.check_for_updates_interactive().unwrap_or(UpdateStatus::Error("error".to_string()));
+                    let status = updater
+                        .check_for_updates_interactive()
+                        .unwrap_or(UpdateStatus::Error("error".to_string()));
                     match status {
                         UpdateStatus::UpToDate => IpcResponse::CheckUpdatesResponse {
                             current: env!("CARGO_PKG_VERSION").to_string(),
                             latest: env!("CARGO_PKG_VERSION").to_string(),
                             downloaded: false,
                         },
-                        UpdateStatus::UpdateAvailable { version, downloaded, .. } => IpcResponse::CheckUpdatesResponse {
+                        UpdateStatus::UpdateAvailable {
+                            version,
+                            downloaded,
+                            ..
+                        } => IpcResponse::CheckUpdatesResponse {
                             current: env!("CARGO_PKG_VERSION").to_string(),
                             latest: version,
                             downloaded,
@@ -192,7 +234,9 @@ fn handle_daemon_request(req: IpcRequest, handler: &mut DaemonHandler) -> IpcRes
                         },
                     }
                 }
-                Err(e) => IpcResponse::Error { message: format!("Error checking updates: {}", e) }
+                Err(e) => IpcResponse::Error {
+                    message: format!("Error checking updates: {}", e),
+                },
             }
         }
         IpcRequest::ApplyUpdateNow => {
@@ -200,8 +244,13 @@ fn handle_daemon_request(req: IpcRequest, handler: &mut DaemonHandler) -> IpcRes
             let daemon_config: DaemonConfig = (&config).into();
             let updater = AutoUpdater::new(daemon_config);
             match updater.apply_now_via_ipc() {
-                Ok(_) => IpcResponse::Result { success: true, message: "Actualizacion aplicada".to_string() },
-                Err(e) => IpcResponse::Error { message: format!("Error aplicando actualizacion: {}", e) }
+                Ok(_) => IpcResponse::Result {
+                    success: true,
+                    message: "Actualizacion aplicada".to_string(),
+                },
+                Err(e) => IpcResponse::Error {
+                    message: format!("Error aplicando actualizacion: {}", e),
+                },
             }
         }
         IpcRequest::GetServerConfig { server_id } => {
@@ -239,17 +288,29 @@ fn handle_daemon_request(req: IpcRequest, handler: &mut DaemonHandler) -> IpcRes
                 let server = mgr.server();
                 let server_dir = &server.path;
                 if let Err(e) = config.generate_all(server_dir) {
-                    IpcResponse::Error { message: format!("Error generando config: {}", e) }
+                    IpcResponse::Error {
+                        message: format!("Error generando config: {}", e),
+                    }
                 } else if let Err(e) = config.save() {
-                    IpcResponse::Error { message: format!("Error guardando config: {}", e) }
+                    IpcResponse::Error {
+                        message: format!("Error guardando config: {}", e),
+                    }
                 } else {
-                    IpcResponse::Result { success: true, message: "Configuracion guardada. Cambios aplican en proximo reinicio".to_string() }
+                    IpcResponse::Result {
+                        success: true,
+                        message: "Configuracion guardada. Cambios aplican en proximo reinicio"
+                            .to_string(),
+                    }
                 }
             } else {
-                IpcResponse::Error { message: "Servidor no encontrado".to_string() }
+                IpcResponse::Error {
+                    message: "Servidor no encontrado".to_string(),
+                }
             }
         }
-        _ => IpcResponse::Error { message: "Comando no implementado".to_string() }
+        _ => IpcResponse::Error {
+            message: "Comando no implementado".to_string(),
+        },
     }
 }
 
