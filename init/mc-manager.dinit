@@ -1,0 +1,62 @@
+# dinit service for mc-manager
+# dinit is used by Chimera Linux and some other distributions
+#
+# Install:
+#   sudo cp mc-manager /etc/dinit.d/
+#   sudo dinitctl enable mc-manager
+#   sudo dinitctl start mc-manager
+#
+# Control:
+#   dinitctl status mc-manager
+#   dinitctl stop mc-manager
+#   dinitctl restart mc-manager
+
+name = "mc-manager"
+description = "Minecraft Server Manager Daemon"
+
+# Tipo de servicio: forking (el daemon hace double-fork)
+type = "forking"
+
+# Usuario y grupo (ajustar según instalación)
+user = "minecraft"
+group = "minecraft"
+
+# Directorio de trabajo
+workdir = "/home/minecraft"
+
+# Variables de entorno
+env = [
+    "HOME=/home/minecraft",
+    "PATH=/usr/local/bin:/usr/bin:/bin"
+]
+
+# Comando de inicio (--foreground para que dinit pueda trackear el PID)
+# Nota: mc-manager daemon start hace double-fork internamente
+# dinit espera que el proceso padre no haga fork, así que usamos --foreground
+exec = ["/usr/local/bin/mc-manager", "daemon", "start", "--foreground"]
+
+# Comando de parada (SIGTERM graceful, dinit maneja timeout + SIGKILL)
+# stop-command es opcional, dinit envía SIGTERM por defecto
+# stop-command = ["/usr/local/bin/mc-manager", "daemon", "stop"]
+
+# PID file (dinit lo usa para trackear el proceso)
+pid-file = "/home/minecraft/.mc-manager/daemon.pid"
+
+# Dependencias
+depends = ["network"]
+
+# Límites de recursos
+limit-nofile = 65536
+limit-nproc = 4096
+
+# Logging
+# dinit captura stdout/stderr automáticamente
+# Logs disponibles via: dinitctl log mc-manager
+
+# Restart policy
+restart = "on-failure"
+restart-delay = 10
+
+# Timeouts
+start-timeout = 30
+stop-timeout = 30

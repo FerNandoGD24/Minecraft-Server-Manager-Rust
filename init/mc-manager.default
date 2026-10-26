@@ -1,0 +1,16 @@
+# Default configuration for mc-manager SysV init script
+# Install: sudo cp mc-manager.default /etc/default/mc-manager
+
+# Usuario y grupo bajo el que corre el daemon
+USER="minecraft"
+GROUP="minecraft"
+
+# Directorio home del usuario (para PID file, config, etc.)
+HOME_DIR="/home/minecraft"
+
+# Argumentos extra para el daemon (ej: --foreground para debug)
+# DAEMON_ARGS="daemon start --foreground"
+
+# Límites de recursos (opcional, requiere pam_limits)
+# ulimit -n 65536
+# ulimit -u 4096

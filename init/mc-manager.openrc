@@ -1,0 +1,78 @@
+#!/sbin/openrc-run
+# OpenRC Init Script for mc-manager
+# Install: sudo cp mc-manager.openrc /etc/init.d/mc-manager
+# Enable:  sudo rc-update add mc-manager default
+#          sudo rc-service mc-manager start
+
+name="mc-manager"
+description="Minecraft Server Manager Daemon"
+command="/usr/local/bin/mc-manager"
+command_args="daemon start"
+command_background=true
+pidfile="/home/${USER:-minecraft}/.mc-manager/daemon.pid"
+output_log="/var/log/mc-manager.log"
+error_log="/var/log/mc-manager.error.log"
+
+# Usuario bajo el que corre (ajustar según instalación)
+: ${mc_manager_user:="minecraft"}
+: ${mc_manager_group:="minecraft"}
+
+depend() {
+    need net
+    after firewall
+    use logger dns
+}
+
+start_pre() {
+    checkpath -d -m 0755 -o "${mc_manager_user}:${mc_manager_group}" \
+        "/home/${mc_manager_user}/.mc-manager" \
+        "/home/${mc_manager_user}/minecraft-servers" 2>/dev/null || true
+
+    # Verificar que el binario existe
+    if [ ! -x "${command}" ]; then
+        eerror "Binary not found: ${command}"
+        return 1
+    fi
+}
+
+start() {
+    ebegin "Starting ${name}"
+    start-stop-daemon --start \
+        --user "${mc_manager_user}" \
+        --group "${mc_manager_group}" \
+        --make-pidfile \
+        --pidfile "${pidfile}" \
+        --background \
+        --stdout "${output_log}" \
+        --stderr "${error_log}" \
+        --exec "${command}" -- daemon start
+    eend $?
+}
+
+stop() {
+    ebegin "Stopping ${name}"
+    # El daemon maneja SIGTERM graceful
+    start-stop-daemon --stop \
+        --user "${mc_manager_user}" \
+        --pidfile "${pidfile}" \
+        --signal TERM \
+        --retry TERM/30/KILL/5
+    eend $?
+}
+
+reload() {
+    ebegin "Reloading ${name} (restart)"
+    stop
+    sleep 2
+    start
+}
+
+status() {
+    if [ -f "${pidfile}" ] && kill -0 "$(cat "${pidfile}")" 2>/dev/null; then
+        einfo "${name} is running (PID: $(cat "${pidfile}"))"
+        return 0
+    else
+        einfo "${name} is stopped"
+        return 1
+    fi
+}

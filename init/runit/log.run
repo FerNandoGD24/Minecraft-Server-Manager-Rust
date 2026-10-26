@@ -1,0 +1,10 @@
+#!/bin/sh
+# runit log service for mc-manager
+# Install: sudo mkdir -p /etc/sv/mc-manager/log && sudo cp run /etc/sv/mc-manager/log/
+
+LOG_DIR="/var/log/mc-manager"
+mkdir -p "${LOG_DIR}"
+chown minecraft:minecraft "${LOG_DIR}" 2>/dev/null || true
+
+# rotar logs con svlogd (mantiene 10 archivos de 1MB cada uno)
+exec chpst -u minecraft:minecraft svlogd -tt "${LOG_DIR}"

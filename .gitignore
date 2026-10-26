@@ -1,0 +1,11 @@
+# Rust
+/target/
+**/*rs.bk
+Cargo.toml.lock
+# Test
+config.json
+/tests/
+#Agente
+*md
+skills-lock.json
+.agents

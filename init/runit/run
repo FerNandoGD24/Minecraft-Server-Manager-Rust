@@ -1,0 +1,35 @@
+#!/bin/sh
+# runit service for mc-manager
+# Install: sudo mkdir -p /etc/sv/mc-manager && sudo cp run /etc/sv/mc-manager/
+#          sudo ln -s /etc/sv/mc-manager /var/service/
+# Enable:  sudo sv up mc-manager
+
+# Usuario y grupo (ajustar según instalación)
+USER="minecraft"
+GROUP="minecraft"
+
+# Directorio home del usuario
+HOME_DIR="/home/${USER}"
+
+# Directorio de trabajo del daemon
+MC_MANAGER_DIR="${HOME_DIR}/.mc-manager"
+
+# Asegurar directorios
+mkdir -p "${MC_MANAGER_DIR}"
+mkdir -p "${HOME_DIR}/minecraft-servers"
+chown -R "${USER}:${GROUP}" "${MC_MANAGER_DIR}" "${HOME_DIR}/minecraft-servers" 2>/dev/null || true
+
+# Ejecutable
+EXEC="/usr/local/bin/mc-manager"
+
+# Verificar que existe
+if [ ! -x "${EXEC}" ]; then
+    echo "ERROR: ${EXEC} no encontrado o no ejecutable" >&2
+    exit 1
+fi
+
+# Ejecutar daemon en foreground (runit espera que el proceso no haga fork)
+# mc-manager daemon start --foreground se queda en foreground
+exec chpst -u "${USER}:${GROUP}" \
+    env HOME="${HOME_DIR}" \
+    "${EXEC}" daemon start --foreground

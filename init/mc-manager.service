@@ -1,0 +1,50 @@
+# Systemd Unit File for mc-manager
+# Install: sudo cp mc-manager.service /etc/systemd/system/
+# Enable:  sudo systemctl enable --now mc-manager
+
+[Unit]
+Description=Minecraft Server Manager Daemon
+Documentation=https://github.com/your-repo/mc-manager
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+User=%i
+Group=%i
+# WorkingDirectory=/home/%i
+# Environment=HOME=/home/%i
+# Environment=PATH=/usr/local/bin:/usr/bin:/bin
+
+# Ejecutable (ajustar ruta según instalación)
+ExecStart=/usr/local/bin/mc-manager daemon start
+ExecStop=/usr/local/bin/mc-manager daemon stop
+ExecReload=/usr/local/bin/mc-manager daemon restart
+
+# PID file creado por el daemon
+PIDFile=/home/%i/.mc-manager/daemon.pid
+
+# Seguridad
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/%i/.mc-manager /home/%i/minecraft-servers
+
+# Límites de recursos
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# Restart policy
+Restart=on-failure
+RestartSec=10
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mc-manager
+
+[Install]
+WantedBy=multi-user.target

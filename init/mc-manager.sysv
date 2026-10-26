@@ -1,0 +1,158 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          mc-manager
+# Required-Start:    $network $remote_fs $syslog
+# Required-Stop:     $network $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Minecraft Server Manager Daemon
+# Description:       Manages Minecraft servers via TUI/CLI with persistent daemon
+### END INIT INFO
+
+# SysV Init Script for mc-manager
+# Install: sudo cp mc-manager.sysv /etc/init.d/mc-manager
+#          sudo chmod +x /etc/init.d/mc-manager
+# Enable:  sudo update-rc.d mc-manager defaults  (Debian/Ubuntu)
+#          sudo chkconfig --add mc-manager       (RHEL/CentOS)
+
+NAME="mc-manager"
+DESC="Minecraft Server Manager Daemon"
+DAEMON="/usr/local/bin/mc-manager"
+DAEMON_ARGS="daemon start"
+PIDFILE="/var/run/mc-manager.pid"
+USER="minecraft"
+GROUP="minecraft"
+HOME_DIR="/home/${USER}"
+
+# Cargar configuración de /etc/default si existe
+[ -r /etc/default/mc-manager ] && . /etc/default/mc-manager
+
+# Funciones de logging
+log_daemon_msg() {
+    echo "$@"
+}
+
+log_end_msg() {
+    if [ $1 -eq 0 ]; then
+        echo " [OK]"
+    else
+        echo " [FAIL]"
+    fi
+}
+
+# Verificar que el binario existe
+check_binary() {
+    if [ ! -x "${DAEMON}" ]; then
+        log_daemon_msg "ERROR: Binary not found: ${DAEMON}"
+        return 1
+    fi
+    return 0
+}
+
+# Crear directorios necesarios
+setup_directories() {
+    mkdir -p "${HOME_DIR}/.mc-manager" "${HOME_DIR}/minecraft-servers"
+    chown -R "${USER}:${GROUP}" "${HOME_DIR}/.mc-manager" "${HOME_DIR}/minecraft-servers" 2>/dev/null || true
+    mkdir -p "$(dirname "${PIDFILE}")"
+    chown "${USER}:${GROUP}" "$(dirname "${PIDFILE}")" 2>/dev/null || true
+}
+
+# Start daemon
+do_start() {
+    check_binary || return 1
+    setup_directories
+
+    log_daemon_msg "Starting ${DESC}..."
+
+    # Usar start-stop-daemon (Debian/Ubuntu) o daemon (RHEL)
+    if command -v start-stop-daemon >/dev/null 2>&1; then
+        start-stop-daemon --start \
+            --user "${USER}" \
+            --group "${GROUP}" \
+            --make-pidfile \
+            --pidfile "${PIDFILE}" \
+            --background \
+            --chdir "${HOME_DIR}" \
+            --exec "${DAEMON}" -- ${DAEMON_ARGS}
+    else
+        # Fallback para sistemas sin start-stop-daemon
+        su -s /bin/sh -c "cd ${HOME_DIR} && ${DAEMON} ${DAEMON_ARGS} & echo \$! > ${PIDFILE}" "${USER}"
+    fi
+
+    local ret=$?
+    if [ ${ret} -eq 0 ]; then
+        log_end_msg 0
+    else
+        log_end_msg 1
+    fi
+    return ${ret}
+}
+
+# Stop daemon
+do_stop() {
+    log_daemon_msg "Stopping ${DESC}..."
+
+    if command -v start-stop-daemon >/dev/null 2>&1; then
+        start-stop-daemon --stop \
+            --user "${USER}" \
+            --pidfile "${PIDFILE}" \
+            --signal TERM \
+            --retry TERM/30/KILL/5 \
+            --remove-pidfile
+    else
+        # Fallback
+        if [ -f "${PIDFILE}" ]; then
+            kill -TERM "$(cat "${PIDFILE}")" 2>/dev/null
+            sleep 2
+            kill -KILL "$(cat "${PIDFILE}")" 2>/dev/null
+            rm -f "${PIDFILE}"
+        fi
+    fi
+
+    local ret=$?
+    if [ ${ret} -eq 0 ]; then
+        log_end_msg 0
+    else
+        log_end_msg 1
+    fi
+    return ${ret}
+}
+
+# Status
+do_status() {
+    if [ -f "${PIDFILE}" ] && kill -0 "$(cat "${PIDFILE}")" 2>/dev/null; then
+        echo "${NAME} is running (PID: $(cat "${PIDFILE}"))"
+        return 0
+    else
+        echo "${NAME} is stopped"
+        return 1
+    fi
+}
+
+# Reload (restart)
+do_reload() {
+    do_stop
+    sleep 2
+    do_start
+}
+
+case "$1" in
+    start)
+        do_start
+        ;;
+    stop)
+        do_stop
+        ;;
+    restart|force-reload)
+        do_reload
+        ;;
+    status)
+        do_status
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|force-reload|status}"
+        exit 1
+        ;;
+esac
+
+exit 0
